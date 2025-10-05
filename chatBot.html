@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMIET - AI Chatbot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 150px;
+        }
+
+        .demo-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .demo-text {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Chatbot Styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        /* Floating Action Button */
+        .chat-fab {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.5);
+            z-index: 10;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 5px 20px rgba(139, 92, 246, 0.5); }
+            50% { box-shadow: 0 5px 30px rgba(139, 92, 246, 0.8); }
+            100% { box-shadow: 0 5px 20px rgba(139, 92, 246, 0.5); }
+        }
+
+        .chat-fab:hover {
+            transform: scale(1.1);
+            animation: none;
+            box-shadow: 0 8px 35px rgba(139, 92, 246, 0.9);
+        }
+
+        .chat-fab .material-icons {
+            font-size: 1.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-fab:hover .material-icons {
+            transform: rotate(15deg);
+        }
+
+        /* Chat Modal */
+        .chat-modal {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.8) translateY(20px);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .chat-modal.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+
+        /* Chat Header */
+        .chat-header {
+            padding: 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.4;
+            position: relative;
+            animation: messageAppear 0.3s ease;
+        }
+
+        @keyframes messageAppear {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom-right-radius: 5px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 16px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+            max-width: 80px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: typingPulse 1.5s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingPulse {
+            0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+            30% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            padding: 15px 20px;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:disabled {
+            background: rgba(139, 92, 246, 0.3);
+            cursor: not-allowed;
+        }
+
+        .send-btn:not(:disabled):hover {
+            background: var(--accent-light);
+            transform: scale(1.1);
+        }
+
+        /* Back Button Styles */
+        .back-button-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 25px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .back-button .material-icons {
+            font-size: 1.2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .chat-modal {
+                width: calc(100vw - 40px);
+                height: 70vh;
+                right: 20px;
+                bottom: 20px;
+            }
+            
+            .chatbot-container {
+                right: 20px;
+                bottom: 20px;
+            }
+            
+            .demo-title {
+                font-size: 2.2rem;
+            }
+
+            .back-button {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .back-button span:last-child {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <div class="back-button-container">
+        <a href="landingpage.html" class="back-button">
+            <span class="material-icons">arrow_back</span>
+            <span>Back to Home</span>
+        </a>
+    </div>
+
+    <!-- Demo Content -->
+    <div class="container">
+        <h1 class="demo-title">BMIET AI Chatbot</h1>
+        <p class="demo-text">This page demonstrates the AI Powered Chatbot component. Click the floating button in the bottom-right corner to interact with Nexus AI.</p>
+        <p class="demo-text" style="color: var(--accent);">Try asking about admissions, courses, or campus life!</p>
+    </div>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Chatbot Component -->
+    <div class="chatbot-container">
+        <!-- Floating Action Button -->
+        <button class="chat-fab" id="chat-fab">
+            <span class="material-icons">smart_toy</span>
+        </button>
+
+        <!-- Chat Modal -->
+        <div class="chat-modal" id="chat-modal">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-title">
+                    <div class="chat-icon">
+                        <span class="material-icons" style="font-size: 1.2rem;">smart_toy</span>
+                    </div>
+                    <span class="chat-name">BMIET Nexus AI</span>
+                </div>
+                <button class="close-btn" id="close-chat">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be dynamically added here -->
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type your message..." maxlength="200">
+                <button class="send-btn" id="send-btn" disabled>
+                    <span class="material-icons">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // Chatbot Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const chatFab = document.getElementById('chat-fab');
+            const chatModal = document.getElementById('chat-modal');
+            const closeChat = document.getElementById('close-chat');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-btn');
+            
+            // Chat state
+            let isChatOpen = false;
+            let isBotTyping = false;
+            
+            // Welcome message
+            const welcomeMessage = "Welcome! I'm Nexus AI, your virtual guide to BMIET. How can I assist you today? You can ask about admissions, courses, or campus life.";
+            
+            // Initialize chat with welcome message
+            addBotMessage(welcomeMessage);
+            
+            // FAB click handler - Morph animation
+            chatFab.addEventListener('click', () => {
+                if (!isChatOpen) {
+                    openChat();
+                }
+            });
+            
+            // Close chat handler
+            closeChat.addEventListener('click', closeChatModal);
+            
+            // Send button handler
+            sendBtn.addEventListener('click', sendMessage);
+            
+            // Enter key handler
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !sendBtn.disabled) {
+                    sendMessage();
+                }
+            });
+            
+            // Input validation
+            chatInput.addEventListener('input', () => {
+                sendBtn.disabled = chatInput.value.trim() === '';
+            });
+            
+            // Open chat with morph animation
+            function openChat() {
+                isChatOpen = true;
+                
+                // Get FAB position and dimensions
+                const fabRect = chatFab.getBoundingClientRect();
+                const fabX = fabRect.left;
+                const fabY = fabRect.top;
+                const fabSize = fabRect.width;
+                
+                // Set initial state for modal (same as FAB)
+                gsap.set(chatModal, {
+                    x: fabX,
+                    y: fabY,
+                    width: fabSize,
+                    height: fabSize,
+                    borderRadius: '50%',
+                    opacity: 1,
+                    visibility: 'visible'
+                });
+                
+                // Animate to final state
+                gsap.to(chatModal, {
+                    x: 0,
+                    y: 0,
+                    width: 350,
+                    height: 500,
+                    borderRadius: '20px',
+                    duration: 0.6,
+                    ease: "back.out(1.7)",
+                    onComplete: () => {
+                        chatModal.classList.add('active');
+                        chatInput.focus();
+                    }
+                });
+                
+                // Hide FAB during animation
+                gsap.to(chatFab, {
+                    scale: 0,
+                    opacity: 0,
+                    duration: 0.3
+                });
+            }
+            
+            // Close chat modal
+            function closeChatModal() {
+                isChatOpen = false;
+                chatModal.classList.remove('active');
+                
+                // Get FAB position and dimensions
+                const fabRect = chatFab.getBoundingClientRect();
+                const fabX = fabRect.left;
+                const fabY = fabRect.top;
+                const fabSize = fabRect.width;
+                
+                // Animate back to FAB
+                gsap.to(chatModal, {
+                    x: fabX,
+                    y: fabY,
+                    width: fabSize,
+                    height: fabSize,
+                    borderRadius: '50%',
+                    duration: 0.5,
+                    ease: "back.in(1.7)",
+                    onComplete: () => {
+                        gsap.set(chatModal, {
+                            opacity: 0,
+                            visibility: 'hidden'
+                        });
+                        
+                        // Show FAB again
+                        gsap.to(chatFab, {
+                            scale: 1,
+                            opacity: 1,
+                            duration: 0.3
+                        });
+                    }
+                });
+            }
+            
+            // Send user message
+            async function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message === '' || isBotTyping) return;
+                
+                // Add user message to chat
+                addUserMessage(message);
+                
+                // Clear input and disable send button
+                chatInput.value = '';
+                sendBtn.disabled = true;
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                try {
+                    // Generate bot response using Gemini API
+                    const botResponse = await generateBotResponse(message);
+                    
+                    // Remove typing indicator
+                    removeTypingIndicator();
+                    
+                    // Add bot response to chat
+                    addBotMessage(botResponse);
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                } catch (error) {
+                    console.error('Error generating response:', error);
+                    
+                    // Remove typing indicator
+                    removeTypingIndicator();
+                    
+                    // Add error message
+                    addBotMessage("I apologize, but I'm having trouble processing your request right now. Please try again later or contact our support team.");
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                }
+            }
+            
+            // Add user message to chat
+            function addUserMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message user-message';
+                messageElement.textContent = message;
+                
+                chatMessages.appendChild(messageElement);
+                scrollToBottom();
+            }
+            
+            // Add bot message to chat
+            function addBotMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message bot-message';
+                messageElement.textContent = message;
+                
+                chatMessages.appendChild(messageElement);
+                scrollToBottom();
+            }
+            
+            // Show typing indicator
+            function showTypingIndicator() {
+                isBotTyping = true;
+                
+                const typingElement = document.createElement('div');
+                typingElement.className = 'typing-indicator';
+                typingElement.id = 'typing-indicator';
+                
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    typingElement.appendChild(dot);
+                }
+                
+                chatMessages.appendChild(typingElement);
+                scrollToBottom();
+            }
+            
+            // Remove typing indicator
+            function removeTypingIndicator() {
+                isBotTyping = false;
+                const typingElement = document.getElementById('typing-indicator');
+                if (typingElement) {
+                    typingElement.remove();
+                }
+            }
+            
+            // Knowledge base about BMIET website
+            const websiteKnowledge = {
+                "about": {
+                    "content": "BMIET (B. M. Institute of Engineering & Technology) is a premier engineering institution established in 1999. We offer quality engineering education with a focus on innovation, research, and holistic development. Our institution is recognized by AICTE and affiliated with a prestigious university.",
+                    "features": ["Proven track record", "Accredited & Affiliated", "Holistic Development", "State-of-the-art facilities"]
+                },
+                "academic": {
+                    "content": "BMIET offers various B.Tech programs including Computer Science Engineering (CSE), Electronics & Communication Engineering (ECE), Electrical & Electronics Engineering (EEE), and Mechanical Engineering. Our CSE program is highly regarded for its focus on AI and Data Science.",
+                    "programs": ["B.Tech CSE", "B.Tech ECE", "B.Tech EEE", "B.Tech Mechanical"]
+                },
+                "admission": {
+                    "content": "Admission to BMIET is based on JEE/State Exam ranks followed by counseling. The process is straightforward and transparent. We welcome applications from students who meet our eligibility criteria.",
+                    "process": ["JEE/State Exam", "Counseling", "Document Verification", "Fee Payment"]
+                },
+                "faculty": {
+                    "content": "Our faculty consists of highly qualified and experienced professors with expertise in their respective fields. They are committed to providing quality education and mentoring students for academic and professional success.",
+                    "qualities": ["Highly qualified", "Industry experience", "Research oriented", "Student focused"]
+                },
+                "research": {
+                    "content": "BMIET encourages research and innovation. We have state-of-the-art laboratories and research facilities to support faculty and student research projects. Our research areas include AI, Data Science, IoT, and emerging technologies.",
+                    "areas": ["Artificial Intelligence", "Data Science", "IoT", "Machine Learning", "Robotics"]
+                },
+                "placement": {
+                    "content": "BMIET has an excellent placement record with top companies visiting our campus. Our placement cell provides comprehensive support including resume building, interview preparation, and career counseling.",
+                    "companies": ["Tech giants", "Startups", "MNCs", "Government organizations"]
+                },
+                "campus": {
+                    "content": "Our campus features modern infrastructure including well-equipped laboratories, libraries, hostels, sports facilities, and recreational areas. We provide a conducive environment for learning and personal development.",
+                    "facilities": ["Laboratories", "Library", "Hostels", "Sports", "Cafeteria", "WiFi"]
+                },
+                "events": {
+                    "content": "BMIET regularly organizes technical events, cultural festivals, workshops, seminars, and competitions. These events provide students with opportunities to showcase their talents and learn from industry experts.",
+                    "types": ["Technical fests", "Cultural events", "Workshops", "Seminars", "Competitions"]
+                },
+                "gallery": {
+                    "content": "Our gallery showcases campus life, events, achievements, and memorable moments. It includes photos from various activities, ceremonies, and student achievements.",
+                    "categories": ["Campus life", "Events", "Achievements", "Student activities"]
+                },
+                "contact": {
+                    "content": "For any queries or information, you can contact us through our contact page. We have dedicated staff to assist with admissions, academic, and general inquiries.",
+                    "methods": ["Phone", "Email", "Visit", "Online form"]
+                }
+            };
+
+            // Generate bot response using Gemini API
+            async function generateBotResponse(userMessage) {
+                try {
+                    // Prepare context for Gemini API
+                    const context = `
+                    You are Nexus AI, the virtual assistant for BMIET (B. M. Institute of Engineering & Technology). 
+                    You have comprehensive knowledge about the institution and can help with various queries.
+                    
+                    BMIET Knowledge Base:
+                    ${JSON.stringify(websiteKnowledge, null, 2)}
+                    
+                    Website Pages Available:
+                    - about.html: Information about BMIET's history, mission, and achievements
+                    - academic.html: Academic programs, courses, and curriculum details
+                    - admission.html: Admission process, eligibility, and application procedures
+                    - faculty.html: Faculty profiles, qualifications, and expertise
+                    - research.html: Research areas, projects, and facilities
+                    - placement.html: Placement statistics, companies, and career support
+                    - events.html: Upcoming events, festivals, and activities
+                    - gallery.html: Campus photos, events, and student life
+                    - contacts.html: Contact information and inquiry methods
+                    - map.html: Campus map and location details
+                    - analytic.html: Website analytics and performance metrics
+                    - chatBot.html: AI chatbot interface
+                    - multilang.html: Multi-language support page
+                    
+                    User Question: ${userMessage}
+                    
+                    Please provide a helpful, accurate, and friendly response based on the available information. 
+                    If the question is about something not covered in the knowledge base, politely suggest contacting 
+                    the admissions office or visiting the relevant page on our website.
+                    `;
+
+                    // Call Gemini API (you'll need to replace with your actual API key)
+                    const response = await callGeminiAPI(context);
+                    return response;
+                } catch (error) {
+                    console.error('Error calling Gemini API:', error);
+                    // Fallback to basic responses
+                    return generateFallbackResponse(userMessage);
+                }
+            }
+
+            // Function to call Gemini API
+            async function callGeminiAPI(prompt) {
+                const API_KEY = 'YOUR_GEMINI_API_KEY'; // Replace with your actual API key
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            }
+
+            // Fallback response generator
+            function generateFallbackResponse(userMessage) {
+                const lowerMessage = userMessage.toLowerCase();
+                
+                if (lowerMessage.includes('admission') || lowerMessage.includes('apply')) {
+                    return "Our admission process is straightforward! It's based on JEE/State Exam ranks, followed by counseling. For all the details, you can visit our Admissions page.";
+                } else if (lowerMessage.includes('courses') || lowerMessage.includes('b.tech')) {
+                    return "We offer a range of B.Tech specializations including CSE, ECE, EEE, and Mechanical Engineering. Our CSE program is highly regarded for its focus on AI and Data Science.";
+                } else if (lowerMessage.includes('placement') || lowerMessage.includes('job')) {
+                    return "BMIET has an excellent placement record with top companies visiting our campus. Our placement cell provides comprehensive support for career development.";
+                } else if (lowerMessage.includes('faculty') || lowerMessage.includes('teacher')) {
+                    return "Our faculty consists of highly qualified and experienced professors with expertise in their respective fields, committed to providing quality education.";
+                } else if (lowerMessage.includes('campus') || lowerMessage.includes('facilities')) {
+                    return "Our campus features modern infrastructure including well-equipped laboratories, libraries, hostels, and sports facilities.";
+                } else {
+                    return "That's a great question! For detailed information, I recommend visiting our website pages or contacting our admissions cell directly at admissions@bmiet.ac.in.";
+                }
+            }
+            
+            // Scroll chat to bottom
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Close chat when clicking outside (optional)
+            document.addEventListener('click', (e) => {
+                if (isChatOpen && !chatModal.contains(e.target) && !chatFab.contains(e.target)) {
+                    closeChatModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

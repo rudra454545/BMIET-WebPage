@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-hero {
+            margin-bottom: 40px;
+        }
+
+        .login-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .login-hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Login Form */
+        .login-form {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px 30px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .login-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);
+            z-index: -1;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 0 10px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-bottom-color: var(--accent);
+            box-shadow: 0 1px 0 0 var(--accent);
+        }
+
+        .form-label {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus + .form-label,
+        .form-input:not(:placeholder-shown) + .form-label {
+            top: -5px;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .login-button:hover::before {
+            left: 100%;
+        }
+
+        .login-button:hover {
+            background: var(--accent-light);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .forgot-link {
+            display: block;
+            margin-top: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-link:hover {
+            color: var(--accent);
+        }
+
+        /* Particle Animation Container */
+        .particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* Success Message */
+        .success-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            border-radius: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            padding: 40px;
+        }
+
+        .success-message.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-size: 2.5rem;
+        }
+
+        .success-message h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .success-message p {
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 300px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+            background: rgba(10, 10, 26, 0.8);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .login-hero p {
+                font-size: 1rem;
+            }
+            
+            .login-form {
+                padding: 30px 20px;
+            }
+            
+            header {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">help</span>
+            <span class="material-icons nav-icon">info</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <div class="login-container">
+                <div class="login-hero">
+                    <h1>Welcome Back, Innovator.</h1>
+                    <p>Your personalized dashboard for academic excellence, resources, and campus connections awaits.</p>
+                </div>
+                
+                <div class="login-form" id="login-form">
+                    <div class="form-group">
+                        <input type="text" id="student-id" class="form-input" placeholder=" " required>
+                        <label for="student-id" class="form-label">Student ID</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" id="password" class="form-input" placeholder=" " required>
+                        <label for="password" class="form-label">Password</label>
+                    </div>
+                    
+                    <button type="submit" class="login-button" id="login-button">Access Portal</button>
+                    
+                    <a href="#" class="forgot-link">Forgot Password?</a>
+                    
+                    <!-- Particle Animation Container -->
+                    <div class="particles-container" id="particles-container"></div>
+                    
+                    <!-- Success Message -->
+                    <div class="success-message" id="success-message">
+                        <div class="success-icon">
+                            <span class="material-icons">check</span>
+                        </div>
+                        <h2>Access Granted</h2>
+                        <p>Redirecting to your personalized dashboard...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // Login Form Functionality
+        const loginForm = document.getElementById('login-form');
+        const loginButton = document.getElementById('login-button');
+        const studentIdInput = document.getElementById('student-id');
+        const passwordInput = document.getElementById('password');
+        const particlesContainer = document.getElementById('particles-container');
+        const successMessage = document.getElementById('success-message');
+
+        // Input focus effects
+        const inputs = document.querySelectorAll('.form-input');
+        
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', () => {
+                if (!input.value) {
+                    input.parentElement.classList.remove('focused');
+                }
+            });
+        });
+
+        // Particle Dissolve Animation
+        function createParticleDissolveAnimation() {
+            // Get the form dimensions and position
+            const formRect = loginForm.getBoundingClientRect();
+            
+            // Create particles from form elements
+            const elementsToDissolve = [
+                ...loginForm.querySelectorAll('.form-group'),
+                loginButton,
+                loginForm.querySelector('.forgot-link')
+            ];
+            
+            // Create particles for each element
+            elementsToDissolve.forEach(element => {
+                const elementRect = element.getBoundingClientRect();
+                
+                // Calculate number of particles based on element size
+                const particleCount = Math.floor((elementRect.width * elementRect.height) / 100);
+                
+                for (let i = 0; i < particleCount; i++) {
+                    // Create particle
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // Random position within the element
+                    const x = Math.random() * elementRect.width;
+                    const y = Math.random() * elementRect.height;
+                    
+                    // Set particle position relative to form
+                    particle.style.left = `${elementRect.left - formRect.left + x}px`;
+                    particle.style.top = `${elementRect.top - formRect.top + y}px`;
+                    
+                    // Random size and color variation
+                    const size = Math.random() * 6 + 4;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    // Color variation
+                    const hue = 250 + Math.random() * 30;
+                    const saturation = 70 + Math.random() * 20;
+                    const lightness = 60 + Math.random() * 20;
+                    particle.style.background = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    
+                    // Add to container
+                    particlesContainer.appendChild(particle);
+                    
+                    // Animate particle
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 100 + Math.random() * 200;
+                    const duration = 1 + Math.random() * 1.5;
+                    
+                    gsap.to(particle, {
+                        x: Math.cos(angle) * distance,
+                        y: Math.sin(angle) * distance,
+                        opacity: 0,
+                        scale: 0,
+                        duration: duration,
+                        ease: "power2.out",
+                        delay: Math.random() * 0.5
+                    });
+                }
+            });
+            
+            // Fade out the form content
+            gsap.to(loginForm.querySelectorAll('.form-group, .login-button, .forgot-link'), {
+                opacity: 0,
+                duration: 0.5,
+                onComplete: () => {
+                    // Show success message after animation completes
+                    setTimeout(() => {
+                        successMessage.classList.add('active');
+                    }, 500);
+                }
+            });
+        }
+
+        // Login button click handler
+        loginButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Check if fields are filled
+            if (studentIdInput.value.trim() && passwordInput.value.trim()) {
+                // Trigger particle dissolve animation
+                createParticleDissolveAnimation();
+            } else {
+                // Shake animation for empty fields
+                gsap.to(loginForm, {
+                    x: -10,
+                    duration: 0.1,
+                    repeat: 5,
+                    yoyo: true,
+                    ease: "power1.inOut"
+                });
+                
+                // Highlight empty fields
+                if (!studentIdInput.value.trim()) {
+                    gsap.to(studentIdInput, {
+                        borderBottomColor: '#ff4757',
+                        duration: 0.3,
+                        yoyo: true,
+                        repeat: 1
+                    });
+                }
+                
+                if (!passwordInput.value.trim()) {
+                    gsap.to(passwordInput, {
+                        borderBottomColor: '#ff4757',
+                        duration: 0.3,
+                        yoyo: true,
+                        repeat: 1
+                    });
+                }
+            }
+        });
+
+        // Form input validation
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value.trim()) {
+                    gsap.to(input, {
+                        borderBottomColor: 'rgba(139, 92, 246, 0.5)',
+                        duration: 0.3
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

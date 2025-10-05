@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateX(-3px);
+            box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .back-button .material-icons {
+            font-size: 1.1rem;
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            padding: 120px 0 50px;
+        }
+
+        .dashboard-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .dashboard-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .dashboard-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);
+            z-index: -1;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Engagement Card */
+        .engagement-card {
+            grid-column: span 2;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            height: 300px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 100%;
+        }
+
+        /* Feedback Card */
+        .feedback-card {
+            grid-column: span 1;
+        }
+
+        .feedback-stream {
+            height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feedback-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .feedback-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .feedback-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feedback-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .feedback-text {
+            flex: 1;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .feedback-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* Performance Card */
+        .performance-card {
+            grid-column: span 1;
+        }
+
+        .performance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .performance-item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .performance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .page-stats {
+            display: flex;
+            gap: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .progress-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer-progress 2s infinite;
+        }
+
+        @keyframes shimmer-progress {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .engagement-card {
+                grid-column: span 1;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 2.2rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .engagement-card, .feedback-card, .performance-card {
+                grid-column: span 1;
+            }
+            
+            header {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <a href="landingpage.html" class="back-button">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Home</span>
+            </a>
+        </div>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <span class="material-icons nav-icon">notifications</span>
+            <span class="material-icons nav-icon">account_circle</span>
+            <span class="material-icons nav-icon">logout</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Dashboard -->
+    <section class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Website Analytics Dashboard</h1>
+                <p class="dashboard-subtitle">Real-time insights and performance metrics</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <!-- Engagement Card -->
+                <div class="dashboard-card engagement-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span class="material-icons">trending_up</span>
+                        </div>
+                        <h2 class="card-title">User Engagement Overview</h2>
+                    </div>
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <canvas id="visitors-chart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="sources-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Card -->
+                <div class="dashboard-card feedback-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span class="material-icons">feedback</span>
+                        </div>
+                        <h2 class="card-title">Live User Feedback</h2>
+                    </div>
+                    <div class="feedback-stream" id="feedback-stream">
+                        <!-- Feedback items will be dynamically added here -->
+                    </div>
+                </div>
+                
+                <!-- Performance Card -->
+                <div class="dashboard-card performance-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span class="material-icons">speed</span>
+                        </div>
+                        <h2 class="card-title">Page Performance & Ratings</h2>
+                    </div>
+                    <div class="performance-list">
+                        <div class="performance-item">
+                            <div class="performance-header">
+                                <span class="page-name">Admissions Page</span>
+                                <div class="page-stats">
+                                    <span>1.2s</span>
+                                    <span>95%</span>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" data-value="95"></div>
+                            </div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="performance-header">
+                                <span class="page-name">Gallery Page</span>
+                                <div class="page-stats">
+                                    <span>2.1s</span>
+                                    <span>92%</span>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" data-value="92"></div>
+                            </div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="performance-header">
+                                <span class="page-name">Contact Page</span>
+                                <div class="page-stats">
+                                    <span>0.9s</span>
+                                    <span>98%</span>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" data-value="98"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-visitors">0</div>
+                    <div class="stat-label">Total Visitors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-rating">0%</div>
+                    <div class="stat-label">Avg. Satisfaction</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-load-time">0s</div>
+                    <div class="stat-label">Avg. Load Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="bounce-rate">0%</div>
+                    <div class="stat-label">Bounce Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Administrative Dashboard</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved. Confidential</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // Dashboard Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate dashboard cards with staggered entrance
+            const cards = document.querySelectorAll('.dashboard-card');
+            
+            gsap.fromTo(cards, 
+                { 
+                    opacity: 0, 
+                    y: 50 
+                },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 0.8,
+                    stagger: 0.15,
+                    ease: "power3.out",
+                    delay: 0.5
+                }
+            );
+
+            // Initialize Charts
+            initializeCharts();
+            
+            // Initialize progress bars
+            initializeProgressBars();
+            
+            // Initialize live feedback stream
+            initializeFeedbackStream();
+            
+            // Initialize stats counters
+            initializeStatsCounters();
+
+            // Chart.js Initialization
+            function initializeCharts() {
+                // Visitors Line Chart
+                const visitorsCtx = document.getElementById('visitors-chart').getContext('2d');
+                const visitorsChart = new Chart(visitorsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Daily Unique Visitors',
+                            data: [1200, 1500, 1350, 1800, 1600, 2100, 1900],
+                            borderColor: '#8B5CF6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#8B5CF6',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(30, 30, 40, 0.9)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#cccccc',
+                                borderColor: '#8B5CF6',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                displayColors: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#cccccc'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#cccccc'
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+
+                // Traffic Sources Doughnut Chart
+                const sourcesCtx = document.getElementById('sources-chart').getContext('2d');
+                const sourcesChart = new Chart(sourcesCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Direct', 'Organic Search', 'Social Media'],
+                        datasets: [{
+                            data: [45, 35, 20],
+                            backgroundColor: [
+                                '#8B5CF6',
+                                '#a78bfa',
+                                '#7c3aed'
+                            ],
+                            borderColor: [
+                                'rgba(30, 30, 40, 0.8)',
+                                'rgba(30, 30, 40, 0.8)',
+                                'rgba(30, 30, 40, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#cccccc',
+                                    padding: 20,
+                                    font: {
+                                        family: 'Roboto Mono, monospace'
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(30, 30, 40, 0.9)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#cccccc',
+                                borderColor: '#8B5CF6',
+                                borderWidth: 1,
+                                cornerRadius: 8
+                            }
+                        },
+                        cutout: '65%',
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+            }
+
+            // Progress Bars Animation
+            function initializeProgressBars() {
+                const progressBars = document.querySelectorAll('.progress-bar');
+                
+                progressBars.forEach(bar => {
+                    const value = bar.getAttribute('data-value');
+                    
+                    // Animate progress bar after a short delay
+                    setTimeout(() => {
+                        gsap.to(bar, {
+                            width: `${value}%`,
+                            duration: 1.5,
+                            ease: "power2.out"
+                        });
+                    }, 800);
+                });
+            }
+
+            // Live Feedback Stream
+            function initializeFeedbackStream() {
+                const feedbackStream = document.getElementById('feedback-stream');
+                const feedbackMessages = [
+                    "The virtual tour is amazing!",
+                    "Admissions process was very clear.",
+                    "Mobile site works perfectly.",
+                    "Course information is comprehensive.",
+                    "Faculty profiles are impressive.",
+                    "Campus facilities look outstanding.",
+                    "The chatbot is very helpful.",
+                    "Website design is modern and intuitive.",
+                    "Application process was smooth.",
+                    "Quick response from support team."
+                ];
+                
+                // Add initial feedback items
+                addFeedbackItem("The virtual tour is amazing!");
+                addFeedbackItem("Admissions process was very clear.");
+                addFeedbackItem("Mobile site works perfectly.");
+                
+                // Add new feedback every 5-8 seconds
+                setInterval(() => {
+                    const randomMessage = feedbackMessages[Math.floor(Math.random() * feedbackMessages.length)];
+                    addFeedbackItem(randomMessage);
+                }, 5000 + Math.random() * 3000);
+                
+                function addFeedbackItem(message) {
+                    const feedbackItem = document.createElement('div');
+                    feedbackItem.className = 'feedback-item';
+                    
+                    const now = new Date();
+                    const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    feedbackItem.innerHTML = `
+                        <div class="feedback-content">
+                            <div class="feedback-avatar">
+                                <span class="material-icons">person</span>
+                            </div>
+                            <div>
+                                <div class="feedback-text">${message}</div>
+                                <div class="feedback-time">${timeString}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add to top of stream
+                    feedbackStream.insertBefore(feedbackItem, feedbackStream.firstChild);
+                    
+                    // Animate entry
+                    gsap.fromTo(feedbackItem, 
+                        { 
+                            opacity: 0, 
+                            y: -20,
+                            height: 0
+                        },
+                        { 
+                            opacity: 1, 
+                            y: 0,
+                            height: 'auto',
+                            duration: 0.5,
+                            ease: "power2.out"
+                        }
+                    );
+                    
+                    // Limit to 10 items and remove oldest
+                    if (feedbackStream.children.length > 10) {
+                        const lastItem = feedbackStream.lastChild;
+                        gsap.to(lastItem, {
+                            opacity: 0,
+                            height: 0,
+                            duration: 0.3,
+                            ease: "power2.in",
+                            onComplete: () => {
+                                if (lastItem.parentNode) {
+                                    lastItem.parentNode.removeChild(lastItem);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Stats Counters Animation
+            function initializeStatsCounters() {
+                // Animate stats counters
+                const totalVisitors = document.getElementById('total-visitors');
+                const avgRating = document.getElementById('avg-rating');
+                const avgLoadTime = document.getElementById('avg-load-time');
+                const bounceRate = document.getElementById('bounce-rate');
+                
+                // Animate counters with staggered timing
+                gsap.to({}, {
+                    duration: 2,
+                    onUpdate: function() {
+                        const progress = this.progress();
+                        
+                        // Total Visitors (sum of daily visitors)
+                        const total = 1200 + 1500 + 1350 + 1800 + 1600 + 2100 + 1900;
+                        totalVisitors.textContent = Math.floor(progress * total).toLocaleString();
+                        
+                        // Average Rating
+                        const ratings = [95, 92, 98];
+                        const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+                        avgRating.textContent = Math.floor(progress * avg) + '%';
+                        
+                        // Average Load Time
+                        const loadTimes = [1.2, 2.1, 0.9];
+                        const loadAvg = loadTimes.reduce((a, b) => a + b, 0) / loadTimes.length;
+                        avgLoadTime.textContent = (progress * loadAvg).toFixed(1) + 's';
+                        
+                        // Bounce Rate (mock calculation)
+                        bounceRate.textContent = Math.floor(30 - (progress * 10)) + '%';
+                    },
+                    ease: "power2.out",
+                    delay: 1
+                });
+            }
+
+            // Card hover animations
+            const hoverCards = document.querySelectorAll('.dashboard-card, .stat-card');
+            
+            hoverCards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    gsap.to(card, {
+                        y: -10,
+                        boxShadow: "0 20px 40px rgba(139, 92, 246, 0.2)",
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    gsap.to(card, {
+                        y: 0,
+                        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

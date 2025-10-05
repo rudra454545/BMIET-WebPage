@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Gallery - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/Flip.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles - Continuous Flow */
+        section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Gallery Section */
+        .gallery-section {
+            padding: 60px 0 100px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-auto-rows: 12px;
+            gap: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+        }
+
+        .gallery-item.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+            display: block;
+        }
+
+        .gallery-item:hover .gallery-image {
+            transform: scale(1.1);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(10, 10, 26, 0.8));
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .image-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .image-category {
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .expand-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(10, 10, 26, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .gallery-item:hover .expand-icon {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+
+        /* Lightbox Modal */
+        .lightbox-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .lightbox-modal.active .lightbox-content {
+            transform: scale(1);
+        }
+
+        .lightbox-image-container {
+            width: 100%;
+            height: 70vh;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .lightbox-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .lightbox-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(10, 10, 26, 0.9), transparent);
+            padding: 30px;
+            color: var(--text-primary);
+        }
+
+        .lightbox-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .lightbox-category {
+            font-size: 1rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            transform: translateY(-50%);
+        }
+
+        .nav-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .close-lightbox:hover {
+            background: var(--accent);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .masonry-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .lightbox-title {
+                font-size: 1.5rem;
+            }
+            
+            .nav-btn {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>A Glimpse Into Our World.</h1>
+            <p>Explore the moments, spaces, and faces that define the BMIET experience.</p>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+        <div class="container">
+            <h2 class="section-title">Explore Our Campus</h2>
+            
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="infrastructure">Infrastructure</button>
+                <button class="filter-btn" data-filter="events">Events</button>
+                <button class="filter-btn" data-filter="campus-life">Campus Life</button>
+                <button class="filter-btn" data-filter="sports">Sports</button>
+            </div>
+            
+            <div class="masonry-grid" id="masonry-grid">
+                <!-- Infrastructure Images -->
+                <div class="gallery-item" data-category="infrastructure" data-index="0">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/549268537_17967793430950842_3532328795380237519_n.jpg?updatedAt=1759632847234" alt="State-of-the-Art Robotics Lab" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">State-of-the-Art Robotics Lab</h3>
+                        <span class="image-category">Infrastructure</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="infrastructure" data-index="1">
+                    <img src="https://www.caoi.ir/images/igallery/resized/22501-22600/Central_Library_University_of_Tehran_Photos_by_Saeed_Rezaiee__7_-22547-800-506-100.jpg" alt="Modern Library Atrium" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Modern Library Atrium</h3>
+                        <span class="image-category">Infrastructure</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <!-- Events Images -->
+                <div class="gallery-item" data-category="events" data-index="2">
+                    <img src="https://landing.bmiet.net/app/images/p1002.jpg" alt="Ignite 2025: Main Stage" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Ignite 2025: Main Stage</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="events" data-index="3">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/552936150_17968818548950842_7482199402929250440_n.jpg?updatedAt=1759632846559" alt="Hackathon Winning Team" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Hackathon Winning Team</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="events" data-index="10">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/552667746_17968818575950842_4667117968024650848_n.jpg?updatedAt=1759632847685" alt="Hackathon Winning Team" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Hackathon Winning Team</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="events" data-index="11">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/552247036_17968818530950842_1138464223769500042_n.jpg?updatedAt=1759632846945" alt="Hackathon Winning Team" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Hackathon Winning Team</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="events" data-index="12">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/321417143_657812512493897_162931028377398450_n.webp.jpg?updatedAt=1759632846262" alt="Hackathon Winning Team" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Hackathon Winning Team</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="events" data-index="13">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/320994856_493491506185069_804151360941435676_n.webp.jpg?updatedAt=1759632847058" alt="Freshers Party Celebration" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Freshers Party Celebration</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <!-- Campus Life Images -->
+                <div class="gallery-item" data-category="campus-life" data-index="4">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/Screenshot_20251005_081128_Maps.jpg?updatedAt=1759632847834" alt="Collaborative Study Sessions" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Collaborative Study Sessions</h3>
+                        <span class="image-category">Campus Life</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="campus-life" data-index="5">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/281605122_721319952280837_887351177809723389_n.webp.jpg?updatedAt=1759632847431" alt="Vibrant Quad Area" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Vibrant Quad Area</h3>
+                        <span class="image-category">Campus Life</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <!-- Additional Images for Better Layout -->
+<div class="gallery-item" data-category="infrastructure" data-index="6">
+    <img src="https://www.sacredheart.edu/media/shu-media/school-of-computer-science-amp-engineering/AI-Lab-Class-1220x686.jpg" alt="Advanced AI Laboratory" class="gallery-image">
+    <div class="image-overlay">
+        <h3 class="image-title">Advanced AI Laboratory</h3>
+        <span class="image-category">Infrastructure</span>
+    </div>
+    <div class="expand-icon">
+        <span class="material-icons">zoom_in</span>
+    </div>
+</div>
+                
+                <div class="gallery-item" data-category="events" data-index="7">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/321206036_1402435800563429_1936616121161372488_n.webp.jpg?updatedAt=1759632847286" alt="Cultural Night Performance" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Cultural Night Performance</h3>
+                        <span class="image-category">Events</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="campus-life" data-index="8">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/Screenshot_20251005_081157_Maps.jpg?updatedAt=1759632847270" alt="Modern Campus Cafeteria" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Modern Campus Cafeteria</h3>
+                        <span class="image-category">Campus Life</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item" data-category="infrastructure" data-index="9">
+                    <img src="https://ik.imagekit.io/p0dhi2jhz/Screenshot_20251005_081107_Maps.jpg?updatedAt=1759632847615" alt="Main Auditorium" class="gallery-image">
+                    <div class="image-overlay">
+                        <h3 class="image-title">Main Auditorium</h3>
+                        <span class="image-category">Infrastructure</span>
+                    </div>
+                    <div class="expand-icon">
+                        <span class="material-icons">zoom_in</span>
+                    </div>
+                </div>
++                <!-- Sports Images -->
++                <div class="gallery-item" data-category="sports" data-index="14">
++                    <img src="https://ik.imagekit.io/p0dhi2jhz/479844058_17943745829950842_7338014598290086515_n.jpg?updatedAt=1759632847499" alt="Sports Event 1" class="gallery-image">
++                    <div class="image-overlay">
++                        <h3 class="image-title">Sports Event 1</h3>
++                        <span class="image-category">Sports</span>
++                    </div>
++                    <div class="expand-icon">
++                        <span class="material-icons">zoom_in</span>
++                    </div>
++                </div>
++                <div class="gallery-item" data-category="sports" data-index="15">
++                    <img src="https://ik.imagekit.io/p0dhi2jhz/476928800_17943745847950842_4274155795969802955_n.jpg?updatedAt=1759632847699" alt="Sports Event 2" class="gallery-image">
++                    <div class="image-overlay">
++                        <h3 class="image-title">Sports Event 2</h3>
++                        <span class="image-category">Sports</span>
++                    </div>
++                    <div class="expand-icon">
++                        <span class="material-icons">zoom_in</span>
++                    </div>
++                </div>
++                <div class="gallery-item" data-category="sports" data-index="16">
++                    <img src="https://ik.imagekit.io/p0dhi2jhz/477453082_17943745856950842_6663471612871761007_n.jpg?updatedAt=1759632847824" alt="Sports Event 3" class="gallery-image">
++                    <div class="image-overlay">
++                        <h3 class="image-title">Sports Event 3</h3>
++                        <span class="image-category">Sports</span>
++                    </div>
++                    <div class="expand-icon">
++                        <span class="material-icons">zoom_in</span>
++                    </div>
++                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox-modal" id="lightbox-modal">
+        <div class="lightbox-content">
+            <button class="close-lightbox" id="close-lightbox">
+                <span class="material-icons">close</span>
+            </button>
+            <div class="lightbox-image-container">
+                <img id="lightbox-image" src="" alt="Gallery Image" class="lightbox-image">
+                <div class="lightbox-info">
+                    <h2 class="lightbox-title" id="lightbox-title">Image Title</h2>
+                    <span class="lightbox-category" id="lightbox-category">Category</span>
+                </div>
+            </div>
+            <div class="lightbox-nav">
+                <button class="nav-btn" id="prev-btn">
+                    <span class="material-icons">chevron_left</span>
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger, Flip);
+
+        // Animate sections on scroll with continuous flow
+        gsap.utils.toArray('section').forEach((section, index) => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 85%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // Gallery Filtering with GSAP Flip
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const masonryGrid = document.getElementById('masonry-grid');
+        
+        // Initialize masonry grid layout
+        function initMasonryGrid() {
+            // Set grid row spans based on image aspect ratios
+            galleryItems.forEach(item => {
+                const img = item.querySelector('img');
+                const aspectRatio = img.naturalHeight / img.naturalWidth;
+                
+                // Calculate approximate rows needed based on aspect ratio
+                const rowSpan = Math.ceil(aspectRatio * 4);
+                item.style.gridRowEnd = `span ${rowSpan}`;
+            });
+        }
+        
+        // Wait for images to load before initializing masonry
+        window.addEventListener('load', initMasonryGrid);
+        
+        // Filter functionality with GSAP Flip
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                const filter = button.getAttribute('data-filter');
+                
+                // Use GSAP Flip for smooth filtering animation
+                const state = Flip.getState(galleryItems);
+                
+                // Show/hide items based on filter
+                galleryItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+                    
+                    if (filter === 'all' || category === filter) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                
+                // Animate the transition
+                Flip.from(state, {
+                    duration: 0.7,
+                    ease: "power2.inOut",
+                    scale: true,
+                    absolute: true,
+                    onEnter: elements => gsap.fromTo(elements, 
+                        { opacity: 0, scale: 0.8 }, 
+                        { opacity: 1, scale: 1, duration: 0.4 }
+                    ),
+                    onLeave: elements => gsap.to(elements, 
+                        { opacity: 0, scale: 0.8, duration: 0.4 }
+                    ),
+                    onComplete: () => {
+                        // Recalculate masonry layout after animation
+                        initMasonryGrid();
+                    }
+                });
+            });
+        });
+
+        // Lightbox Functionality
+        const lightboxModal = document.getElementById('lightbox-modal');
+        const closeLightboxBtn = document.getElementById('close-lightbox');
+        const lightboxImage = document.getElementById('lightbox-image');
+        const lightboxTitle = document.getElementById('lightbox-title');
+        const lightboxCategory = document.getElementById('lightbox-category');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        
+        let currentFilter = 'all';
+        let currentImageIndex = 0;
+        let filteredImages = [];
+        
+        // Open lightbox when gallery item is clicked
+        galleryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const category = item.getAttribute('data-category');
+                const index = parseInt(item.getAttribute('data-index'));
+                
+                // Get current filter
+                currentFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+                
+                // Get filtered images based on current filter
+                if (currentFilter === 'all') {
+                    filteredImages = Array.from(galleryItems);
+                } else {
+                    filteredImages = Array.from(galleryItems).filter(
+                        item => item.getAttribute('data-category') === currentFilter
+                    );
+                }
+                
+                // Find current image index in filtered array
+                currentImageIndex = filteredImages.findIndex(
+                    img => img.getAttribute('data-index') === index.toString()
+                );
+                
+                // Update lightbox content
+                updateLightboxContent();
+                
+                // Show lightbox with animation
+                lightboxModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Update lightbox content
+        function updateLightboxContent() {
+            if (filteredImages.length > 0) {
+                const currentItem = filteredImages[currentImageIndex];
+                const img = currentItem.querySelector('img');
+                const title = currentItem.querySelector('.image-title').textContent;
+                const category = currentItem.querySelector('.image-category').textContent;
+                
+                lightboxImage.src = img.src;
+                lightboxTitle.textContent = title;
+                lightboxCategory.textContent = category;
+                
+                // Update navigation buttons
+                updateNavButtons();
+            }
+        }
+        
+        // Navigation functions
+        function nextImage() {
+            if (filteredImages.length > 0) {
+                currentImageIndex = (currentImageIndex + 1) % filteredImages.length;
+                
+                // Animate transition
+                gsap.to(lightboxImage, {
+                    opacity: 0,
+                    duration: 0.3,
+                    onComplete: () => {
+                        updateLightboxContent();
+                        gsap.to(lightboxImage, {
+                            opacity: 1,
+                            duration: 0.3
+                        });
+                    }
+                });
+            }
+        }
+        
+        function prevImage() {
+            if (filteredImages.length > 0) {
+                currentImageIndex = (currentImageIndex - 1 + filteredImages.length) % filteredImages.length;
+                
+                // Animate transition
+                gsap.to(lightboxImage, {
+                    opacity: 0,
+                    duration: 0.3,
+                    onComplete: () => {
+                        updateLightboxContent();
+                        gsap.to(lightboxImage, {
+                            opacity: 1,
+                            duration: 0.3
+                        });
+                    }
+                });
+            }
+        }
+        
+        function updateNavButtons() {
+            // Show/hide buttons based on number of images
+            if (filteredImages.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            }
+        }
+        
+        // Event listeners for navigation
+        nextBtn.addEventListener('click', nextImage);
+        prevBtn.addEventListener('click', prevImage);
+        
+        // Close lightbox
+        closeLightboxBtn.addEventListener('click', () => {
+            lightboxModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Close lightbox when clicking outside content
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) {
+                lightboxModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (lightboxModal.classList.contains('active')) {
+                if (e.key === 'ArrowRight') {
+                    nextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage();
+                } else if (e.key === 'Escape') {
+                    lightboxModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

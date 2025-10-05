@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Calendar - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles - Continuous Flow */
+        section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            padding: 60px 0 80px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .timeline-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin-bottom: 40px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: translateY(-50%);
+            overflow: visible;
+        }
+
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            filter: blur(5px);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .timeline-node {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        .timeline-node:hover {
+            transform: translate(-50%, -50%) scale(1.5);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+        }
+
+        .timeline-node.active {
+            transform: translate(-50%, -50%) scale(1.5);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+        }
+
+        .timeline-node.exam {
+            background: #EF476F;
+            box-shadow: 0 0 10px rgba(239, 71, 111, 0.5);
+        }
+
+        .timeline-node.event {
+            background: #06D6A0;
+            box-shadow: 0 0 10px rgba(6, 214, 160, 0.5);
+        }
+
+        .timeline-node.holiday {
+            background: #FFD166;
+            box-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
+        }
+
+        .timeline-node.semester {
+            background: #118AB2;
+            box-shadow: 0 0 10px rgba(17, 138, 178, 0.5);
+        }
+
+        .node-label {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .node-tooltip {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .timeline-node:hover .node-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tooltip-title {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .tooltip-date {
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        .semester-markers {
+            position: absolute;
+            top: 70%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .semester-marker {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .semester-marker .semester-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        /* Detailed Schedule Section */
+        .schedule-section {
+            padding: 80px 0 100px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .semester-column {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid var(--card-border);
+        }
+
+        .semester-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .semester-name {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .semester-dates {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .event-list {
+            list-style: none;
+        }
+
+        .event-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .event-item:hover {
+            color: var(--accent);
+            transform: translateX(10px);
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .event-icon.exam {
+            background: rgba(239, 71, 111, 0.2);
+            color: #EF476F;
+        }
+
+        .event-icon.event {
+            background: rgba(6, 214, 160, 0.2);
+            color: #06D6A0;
+        }
+
+        .event-icon.holiday {
+            background: rgba(255, 209, 102, 0.2);
+            color: #FFD166;
+        }
+
+        .event-icon.semester {
+            background: rgba(17, 138, 178, 0.2);
+            color: #118AB2;
+        }
+
+        .event-details {
+            flex: 1;
+        }
+
+        .event-title {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .event-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .timeline-container {
+                height: 250px;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .semester-column {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>The Rhythm of the Academic Year.</h1>
+            <p>Key dates and milestones that define our educational journey from start to finish.</p>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+        <div class="container">
+            <h2 class="section-title">Academic Timeline 2024-2026</h2>
+            
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">
+                    <span class="material-icons">all_inclusive</span>
+                    All Events
+                </button>
+                <button class="filter-btn" data-filter="exam">
+                    <span class="material-icons">school</span>
+                    Exams
+                </button>
+                <button class="filter-btn" data-filter="event">
+                    <span class="material-icons">celebration</span>
+                    Events
+                </button>
+                <button class="filter-btn" data-filter="holiday">
+                    <span class="material-icons">beach_access</span>
+                    Holidays
+                </button>
+                <button class="filter-btn" data-filter="semester">
+                    <span class="material-icons">event</span>
+                    Semester
+                </button>
+            </div>
+            
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                
+                <!-- Timeline Nodes -->
+                <div class="timeline-node semester" data-category="semester" style="left: 0%;" data-event="even-start">
+                    <div class="node-label">Jan '25</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Even Semester Commences</div>
+                        <div class="tooltip-date">January 29, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node holiday" data-category="holiday" style="left: 20%;" data-event="diwali">
+                    <div class="node-label">Diwali Break</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Diwali Holidays</div>
+                        <div class="tooltip-date">October 25-30, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node exam" data-category="exam" style="left: 30%;" data-event="class-test-1">
+                    <div class="node-label">Class Test I</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Class Test I</div>
+                        <div class="tooltip-date">March 17-21, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node event" data-category="event" style="left: 40%;" data-event="ignite">
+                    <div class="node-label">Ignite Fest</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">"Ignite" Annual Fest</div>
+                        <div class="tooltip-date">December 5-7, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node event" data-category="event" style="left: 50%;" data-event="hackathon">
+                    <div class="node-label">Hackathon</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">National Hackathon & Project Exhibitions</div>
+                        <div class="tooltip-date">December 20-22, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node holiday" data-category="holiday" style="left: 55%;" data-event="winter">
+                    <div class="node-label">Winter Break</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Winter Holidays</div>
+                        <div class="tooltip-date">December 24 - January 2, 2026</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node exam" data-category="exam" style="left: 65%;" data-event="even-exams">
+                    <div class="node-label">Even Exams</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Even Semester Examinations</div>
+                        <div class="tooltip-date">May 21 - June 12, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node semester" data-category="semester" style="left: 75%;" data-event="odd-start">
+                    <div class="node-label">Aug '25</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Odd Semester Commences</div>
+                        <div class="tooltip-date">August 14, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node exam" data-category="exam" style="left: 85%;" data-event="mid-term-even">
+                    <div class="node-label">Mid-Terms</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">Mid-Term Examinations</div>
+                        <div class="tooltip-date">May 10-20, 2026</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-node exam" data-category="exam" style="left: 95%;" data-event="end-term-even">
+                    <div class="node-label">End-Terms</div>
+                    <div class="node-tooltip">
+                        <div class="tooltip-title">End-Term Examinations</div>
+                        <div class="tooltip-date">June 5-20, 2026</div>
+                    </div>
+                </div>
+                
+                <div class="semester-markers">
+                    <div class="semester-marker">
+                        <div class="semester-title">Odd Semester</div>
+                        <div>Aug '25 - Jan '26</div>
+                    </div>
+                    <div class="semester-marker">
+                        <div class="semester-title">Even Semester</div>
+                        <div>Mar '26 - Jun '26</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detailed Schedule Section -->
+    <section class="schedule-section">
+        <div class="container">
+            <h2 class="section-title">Detailed Schedule</h2>
+            <div class="schedule-grid">
+                <!-- Odd Semester Column -->
+                <div class="semester-column">
+                    <div class="semester-header">
+                        <h3 class="semester-name">Even Semester 2024-25</h3>
+                        <p class="semester-dates">January 2025 - June 2025</p>
+                    </div>
+                    <ul class="event-list">
+                        <li class="event-item">
+                            <div class="event-icon semester">
+                                <span class="material-icons">event</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">Semester Commences</h4>
+                                <p class="event-date">January 29, 2025</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon holiday">
+                                <span class="material-icons">beach_access</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">Diwali Break</h4>
+                                <p class="event-date">October 25-30, 2025</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon exam">
+                                <span class="material-icons">school</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">Mid-Term Examinations</h4>
+                                <p class="event-date">November 15-25, 2025</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon event">
+                                <span class="material-icons">celebration</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">"Ignite" Annual Fest</h4>
+                                <p class="event-date">December 5-7, 2025</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon event">
+                                <span class="material-icons">code</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">National Hackathon & Project Exhibitions</h4>
+                                <p class="event-date">December 20-22, 2025</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon holiday">
+                                <span class="material-icons">ac_unit</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">Winter Break</h4>
+                                <p class="event-date">December 24 - January 2, 2026</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon exam">
+                                <span class="material-icons">assignment</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">End-Term Examinations</h4>
+                                <p class="event-date">January 10-25, 2026</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Even Semester Column -->
+                <div class="semester-column">
+                    <div class="semester-header">
+                        <h3 class="semester-name">Even Semester</h3>
+                        <p class="semester-dates">March 2026 - June 2026</p>
+                    </div>
+                    <ul class="event-list">
+                        <li class="event-item">
+                            <div class="event-icon semester">
+                                <span class="material-icons">event</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">Semester Commences</h4>
+                                <p class="event-date">March 1, 2026</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon exam">
+                                <span class="material-icons">school</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">Mid-Term Examinations</h4>
+                                <p class="event-date">May 10-20, 2026</p>
+                            </div>
+                        </li>
+                        <li class="event-item">
+                            <div class="event-icon exam">
+                                <span class="material-icons">assignment</span>
+                            </div>
+                            <div class="event-details">
+                                <h4 class="event-title">End-Term Examinations</h4>
+                                <p class="event-date">June 5-20, 2026</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate sections on scroll with continuous flow
+        gsap.utils.toArray('section').forEach((section, index) => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 85%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // Timeline Filtering System
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const timelineNodes = document.querySelectorAll('.timeline-node');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                const filter = button.getAttribute('data-filter');
+                
+                // Animate timeline nodes based on filter
+                timelineNodes.forEach(node => {
+                    const category = node.getAttribute('data-category');
+                    
+                    if (filter === 'all' || category === filter) {
+                        // Highlight matching nodes
+                        gsap.to(node, {
+                            scale: 1.2,
+                            duration: 0.3,
+                            ease: "power2.out"
+                        });
+                        
+                        // Make node fully visible
+                        gsap.to(node, {
+                            opacity: 1,
+                            duration: 0.3
+                        });
+                    } else {
+                        // Dim non-matching nodes
+                        gsap.to(node, {
+                            scale: 0.8,
+                            duration: 0.3,
+                            ease: "power2.out"
+                        });
+                        
+                        // Make node semi-transparent
+                        gsap.to(node, {
+                            opacity: 0.3,
+                            duration: 0.3
+                        });
+                    }
+                });
+            });
+        });
+
+        // Enhanced timeline node interactions
+        timelineNodes.forEach(node => {
+            // Enhanced hover effects with GSAP
+            node.addEventListener('mouseenter', () => {
+                gsap.to(node, {
+                    scale: 1.5,
+                    duration: 0.2,
+                    ease: "back.out(1.7)"
+                });
+                
+                // Animate tooltip appearance
+                const tooltip = node.querySelector('.node-tooltip');
+                if (tooltip) {
+                    gsap.fromTo(tooltip, 
+                        { opacity: 0, y: 10 },
+                        { opacity: 1, y: 0, duration: 0.3 }
+                    );
+                }
+            });
+            
+            node.addEventListener('mouseleave', () => {
+                const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+                const category = node.getAttribute('data-category');
+                
+                // Return to filtered state
+                if (activeFilter === 'all' || category === activeFilter) {
+                    gsap.to(node, {
+                        scale: 1.2,
+                        duration: 0.2
+                    });
+                } else {
+                    gsap.to(node, {
+                        scale: 0.8,
+                        duration: 0.2
+                    });
+                }
+                
+                // Hide tooltip
+                const tooltip = node.querySelector('.node-tooltip');
+                if (tooltip) {
+                    gsap.to(tooltip, {
+                        opacity: 0,
+                        y: 10,
+                        duration: 0.2
+                    });
+                }
+            });
+            
+            // Click to highlight event in detailed schedule
+            node.addEventListener('click', () => {
+                const eventId = node.getAttribute('data-event');
+                
+                // Find corresponding event in detailed schedule
+                const eventItems = document.querySelectorAll('.event-item');
+                eventItems.forEach(item => {
+                    // Reset all items
+                    gsap.to(item, {
+                        color: 'var(--text-primary)',
+                        duration: 0.3
+                    });
+                });
+                
+                // Highlight matching event (simplified matching)
+                // In a real implementation, you would have proper data attributes for matching
+                const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+                
+                // Animate timeline node pulse
+                gsap.to(node, {
+                    scale: 1.8,
+                    duration: 0.2,
+                    yoyo: true,
+                    repeat: 1
+                });
+            });
+        });
+
+        // Enhanced event item hover effects
+        const eventItems = document.querySelectorAll('.event-item');
+        eventItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                gsap.to(item, {
+                    x: 10,
+                    color: 'var(--accent)',
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+            
+            item.addEventListener('mouseleave', () => {
+                gsap.to(item, {
+                    x: 0,
+                    color: 'var(--text-primary)',
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+        });
+    </script>
+</body>
+</html>

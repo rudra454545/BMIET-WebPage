@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumni Network - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles - Continuous Flow */
+        section {
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Map Section */
+        .map-section {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .world-map {
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+
+        .map-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.7);
+        }
+
+        .map-node:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 1);
+        }
+
+        .map-node.home {
+            width: 20px;
+            height: 20px;
+            background: #ff4757;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.7);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .connection-line {
+            stroke: var(--accent);
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            opacity: 0;
+        }
+
+        .map-tooltip {
+            position: absolute;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 15px 20px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip-city {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .tooltip-alumni {
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        /* Carousel Section */
+        .carousel-section {
+            padding: 100px 0;
+        }
+
+        .carousel-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s ease;
+            cursor: grab;
+        }
+
+        .carousel-track:active {
+            cursor: grabbing;
+        }
+
+        .alumni-card {
+            flex: 0 0 320px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 0 15px;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alumni-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);
+            z-index: -1;
+        }
+
+        .alumni-card:hover {
+            transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .alumni-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .alumni-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .alumni-name {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .alumni-batch {
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .alumni-role {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .alumni-quote {
+            font-style: italic;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .alumni-quote::before,
+        .alumni-quote::after {
+            content: '"';
+            color: var(--accent);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .carousel-nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+            gap: 15px;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background: var(--accent);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.7);
+        }
+
+        /* Connect Section */
+        .connect-section {
+            padding: 100px 0;
+        }
+
+        .connect-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .connect-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .connect-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .connect-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .connect-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .connect-button {
+            padding: 15px 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .connect-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .connect-button:hover::before {
+            left: 100%;
+        }
+
+        .connect-button:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .connect-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .network-graphic {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        .network-node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.7);
+        }
+
+        .network-line {
+            position: absolute;
+            height: 2px;
+            background: var(--accent);
+            transform-origin: left center;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .map-container {
+                height: 400px;
+            }
+            
+            .connect-container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .alumni-card {
+                flex: 0 0 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Our Legacy of Leaders.</h1>
+            <p>Spanning the globe, our alumni are the architects of the future, driving innovation in every major industry.</p>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="map-section">
+        <div class="container">
+            <h2 class="section-title">A Global Network of Innovators</h2>
+            
+            <div class="map-container">
+                <!-- World Map SVG -->
+                <svg class="world-map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+                    <!-- Simplified world map outline -->
+                    <path d="M150,250 C180,230 220,240 250,250 C280,260 320,270 350,250 C380,230 420,220 450,240 C480,260 520,280 550,260 C580,240 620,230 650,250 C680,270 720,290 750,270 C780,250 820,240 850,260" 
+                          fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                    
+                    <!-- Connection lines (initially hidden) -->
+                    <path id="line-sf" class="connection-line" d="M500,250 L700,150"/>
+                    <path id="line-london" class="connection-line" d="M500,250 L450,200"/>
+                    <path id="line-bangalore" class="connection-line" d="M500,250 L600,300"/>
+                    <path id="line-singapore" class="connection-line" d="M500,250 L650,320"/>
+                </svg>
+                
+                <!-- BMIET Home Node -->
+                <div class="map-node home" id="home-node" style="left: 50%; top: 50%; transform: translate(-50%, -50%);"></div>
+                
+                <!-- Global Nodes -->
+                <div class="map-node" id="node-sf" data-city="San Francisco" data-alumni="50+ Alumni" style="left: 70%; top: 30%;"></div>
+                <div class="map-node" id="node-london" data-city="London" data-alumni="30+ Alumni" style="left: 45%; top: 20%;"></div>
+                <div class="map-node" id="node-bangalore" data-city="Bangalore" data-alumni="200+ Alumni" style="left: 60%; top: 60%;"></div>
+                <div class="map-node" id="node-singapore" data-city="Singapore" data-alumni="25+ Alumni" style="left: 65%; top: 64%;"></div>
+                
+                <!-- Tooltip -->
+                <div class="map-tooltip" id="map-tooltip">
+                    <div class="tooltip-city" id="tooltip-city">City Name</div>
+                    <div class="tooltip-alumni" id="tooltip-alumni">Alumni Count</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carousel Section -->
+    <section class="carousel-section">
+        <div class="container">
+            <h2 class="section-title">Spotlight on Success</h2>
+            
+            <div class="carousel-container">
+                <div class="carousel-track" id="carousel-track">
+                    <!-- Alumni Card 1 -->
+                    <div class="alumni-card">
+                        <div class="alumni-photo">
+                            <img src="https://placehold.co/400x400/1a1a2a/8B5CF6?text=Rohan+Mehta" alt="Rohan Mehta">
+                        </div>
+                        <h3 class="alumni-name">Rohan Mehta</h3>
+                        <div class="alumni-batch">Batch of 2012</div>
+                        <div class="alumni-role">Senior Software Engineer, Google</div>
+                        <p class="alumni-quote">BMIET provided the foundational skills to tackle real-world engineering challenges head-on.</p>
+                    </div>
+                    
+                    <!-- Alumni Card 2 -->
+                    <div class="alumni-card">
+                        <div class="alumni-photo">
+                            <img src="https://placehold.co/400x400/1a1a2a/8B5CF6?text=Priya+Singh" alt="Priya Singh">
+                        </div>
+                        <h3 class="alumni-name">Priya Singh</h3>
+                        <div class="alumni-batch">Batch of 2015</div>
+                        <div class="alumni-role">Product Manager, Microsoft</div>
+                        <p class="alumni-quote">The collaborative environment and incredibly supportive faculty were key to my professional growth.</p>
+                    </div>
+                    
+                    <!-- Alumni Card 3 -->
+                    <div class="alumni-card">
+                        <div class="alumni-photo">
+                            <img src="https://placehold.co/400x400/1a1a2a/8B5CF6?text=Amit+Kumar" alt="Amit Kumar">
+                        </div>
+                        <h3 class="alumni-name">Amit Kumar</h3>
+                        <div class="alumni-batch">Batch of 2010</div>
+                        <div class="alumni-role">Data Scientist, Amazon</div>
+                        <p class="alumni-quote">The problem-solving approach I learned at BMIET has been invaluable throughout my career.</p>
+                    </div>
+                    
+                    <!-- Alumni Card 4 -->
+                    <div class="alumni-card">
+                        <div class="alumni-photo">
+                            <img src="https://placehold.co/400x400/1a1a2a/8B5CF6?text=Neha+Sharma" alt="Neha Sharma">
+                        </div>
+                        <h3 class="alumni-name">Neha Sharma</h3>
+                        <div class="alumni-batch">Batch of 2018</div>
+                        <div class="alumni-role">AI Research Lead, Tesla</div>
+                        <p class="alumni-quote">BMIET's focus on emerging technologies gave me the edge I needed in the competitive AI field.</p>
+                    </div>
+                </div>
+                
+                <div class="carousel-nav">
+                    <div class="carousel-dot active" data-index="0"></div>
+                    <div class="carousel-dot" data-index="1"></div>
+                    <div class="carousel-dot" data-index="2"></div>
+                    <div class="carousel-dot" data-index="3"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Connect Section -->
+    <section class="connect-section">
+        <div class="container">
+            <h2 class="section-title">Become Part of the Legacy</h2>
+            
+            <div class="connect-container">
+                <div class="connect-info">
+                    <h3 class="connect-title">Stay Connected</h3>
+                    <p class="connect-text">Join our vibrant alumni community to network with fellow graduates, mentor current students, and stay updated with campus developments. Together, we can continue to build the BMIET legacy.</p>
+                    
+                    <div class="connect-buttons">
+                        <a href="#" class="connect-button">Join the Alumni Association</a>
+                        <a href="#" class="connect-button">Update Your Profile</a>
+                    </div>
+                </div>
+                
+                <div class="connect-image">
+                    <div class="network-graphic" id="network-graphic">
+                        <!-- Dynamic network visualization will be generated with JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate sections on scroll with continuous flow
+        gsap.utils.toArray('section').forEach((section, index) => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 85%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // Interactive World Map
+        const mapNodes = document.querySelectorAll('.map-node:not(.home)');
+        const connectionLines = document.querySelectorAll('.connection-line');
+        const mapTooltip = document.getElementById('map-tooltip');
+        const tooltipCity = document.getElementById('tooltip-city');
+        const tooltipAlumni = document.getElementById('tooltip-alumni');
+
+        // Map node hover interactions
+        mapNodes.forEach((node, index) => {
+            const line = connectionLines[index];
+            
+            node.addEventListener('mouseenter', () => {
+                // Animate connection line
+                gsap.to(line, {
+                    strokeDashoffset: 0,
+                    opacity: 1,
+                    duration: 1,
+                    ease: "power2.out"
+                });
+                
+                // Update tooltip content and position
+                const city = node.getAttribute('data-city');
+                const alumni = node.getAttribute('data-alumni');
+                
+                tooltipCity.textContent = city;
+                tooltipAlumni.textContent = alumni;
+                
+                // Position tooltip near the node
+                const nodeRect = node.getBoundingClientRect();
+                const mapRect = document.querySelector('.map-container').getBoundingClientRect();
+                
+                mapTooltip.style.left = `${nodeRect.left - mapRect.left + 20}px`;
+                mapTooltip.style.top = `${nodeRect.top - mapRect.top - 60}px`;
+                
+                // Show tooltip
+                gsap.to(mapTooltip, {
+                    opacity: 1,
+                    duration: 0.3
+                });
+            });
+            
+            node.addEventListener('mouseleave', () => {
+                // Hide connection line
+                gsap.to(line, {
+                    strokeDashoffset: 1000,
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: "power2.in"
+                });
+                
+                // Hide tooltip
+                gsap.to(mapTooltip, {
+                    opacity: 0,
+                    duration: 0.3
+                });
+            });
+        });
+
+        // Alumni Carousel
+        const carouselTrack = document.getElementById('carousel-track');
+        const carouselDots = document.querySelectorAll('.carousel-dot');
+        let isDragging = false;
+        let startPos = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+        let currentIndex = 0;
+        const cardWidth = 320 + 30; // card width + margin
+
+        // Initialize carousel position
+        updateCarouselPosition();
+
+        // Mouse events for dragging
+        carouselTrack.addEventListener('mousedown', dragStart);
+        carouselTrack.addEventListener('touchstart', dragStart);
+        
+        carouselTrack.addEventListener('mousemove', drag);
+        carouselTrack.addEventListener('touchmove', drag);
+        
+        carouselTrack.addEventListener('mouseup', dragEnd);
+        carouselTrack.addEventListener('touchend', dragEnd);
+        carouselTrack.addEventListener('mouseleave', dragEnd);
+
+        // Carousel dot navigation
+        carouselDots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                goToSlide(index);
+            });
+        });
+
+        function dragStart(e) {
+            if (e.type === 'touchstart') {
+                startPos = e.touches[0].clientX;
+            } else {
+                startPos = e.clientX;
+                e.preventDefault();
+            }
+            
+            isDragging = true;
+            carouselTrack.style.cursor = 'grabbing';
+            carouselTrack.style.transition = 'none';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const currentPosition = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const diff = currentPosition - startPos;
+            
+            currentTranslate = prevTranslate + diff;
+            carouselTrack.style.transform = `translateX(${currentTranslate}px)`;
+        }
+
+        function dragEnd() {
+            isDragging = false;
+            carouselTrack.style.cursor = 'grab';
+            carouselTrack.style.transition = 'transform 0.5s ease';
+            
+            const movedBy = currentTranslate - prevTranslate;
+            
+            // Determine if we should change slide based on drag distance
+            if (movedBy < -100 && currentIndex < carouselDots.length - 1) {
+                currentIndex++;
+            } else if (movedBy > 100 && currentIndex > 0) {
+                currentIndex--;
+            }
+            
+            goToSlide(currentIndex);
+        }
+
+        function goToSlide(index) {
+            currentIndex = index;
+            prevTranslate = currentIndex * -cardWidth;
+            currentTranslate = prevTranslate;
+            
+            updateCarouselPosition();
+            updateCarouselDots();
+        }
+
+        function updateCarouselPosition() {
+            carouselTrack.style.transform = `translateX(${currentTranslate}px)`;
+        }
+
+        function updateCarouselDots() {
+            carouselDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        // Network Visualization
+        const networkGraphic = document.getElementById('network-graphic');
+        
+        // Create a dynamic network visualization
+        function createNetworkVisualization() {
+            const nodeCount = 15;
+            const nodes = [];
+            
+            // Create nodes
+            for (let i = 0; i < nodeCount; i++) {
+                const node = document.createElement('div');
+                node.classList.add('network-node');
+                
+                // Random position within container
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                node.style.left = `${x}%`;
+                node.style.top = `${y}%`;
+                
+                networkGraphic.appendChild(node);
+                nodes.push({ element: node, x, y });
+            }
+            
+            // Create connections between some nodes
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    // Random chance to connect
+                    if (Math.random() > 0.7) {
+                        const line = document.createElement('div');
+                        line.classList.add('network-line');
+                        
+                        const nodeA = nodes[i];
+                        const nodeB = nodes[j];
+                        
+                        // Calculate line properties
+                        const dx = nodeB.x - nodeA.x;
+                        const dy = nodeB.y - nodeA.y;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        
+                        line.style.width = `${length}%`;
+                        line.style.left = `${nodeA.x}%`;
+                        line.style.top = `${nodeA.y}%`;
+                        line.style.transform = `rotate(${angle}deg)`;
+                        line.style.opacity = 0.3 + Math.random() * 0.4;
+                        
+                        networkGraphic.appendChild(line);
+                    }
+                }
+            }
+            
+            // Animate nodes with GSAP
+            nodes.forEach(node => {
+                gsap.to(node.element, {
+                    x: `+=${(Math.random() - 0.5) * 10}`,
+                    y: `+=${(Math.random() - 0.5) * 10}`,
+                    duration: 2 + Math.random() * 3,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut"
+                });
+            });
+        }
+        
+        createNetworkVisualization();
+
+        // Card hover animations
+        const cards = document.querySelectorAll('.alumni-card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                gsap.to(card, {
+                    y: -10,
+                    boxShadow: "0 20px 40px rgba(139, 92, 246, 0.2)",
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    y: 0,
+                    boxShadow: "none",
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+        });
+    </script>
+</body>
+</html>

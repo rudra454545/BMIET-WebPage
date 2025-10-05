@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .hindi-text {
+            font-family: 'Hind', sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateX(-3px);
+            box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .back-button .material-icons {
+            font-size: 1.1rem;
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        /* Language Switcher */
+        .language-switcher {
+            position: relative;
+        }
+
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        .language-toggle:hover {
+            background: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            backdrop-filter: blur(15px);
+            min-width: 150px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .language-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .language-option {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .language-option:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .language-option.active {
+            color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .language-flag {
+            width: 20px;
+            height: 15px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .flag-en {
+            background: linear-gradient(to bottom, #012169 0%, #012169 33%, #ffffff 33%, #ffffff 66%, #C8102E 66%, #C8102E 100%);
+        }
+
+        .flag-hi {
+            background: linear-gradient(to bottom, #FF9933 0%, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%, #138808 100%);
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles */
+        section {
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .timeline-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 2px;
+        }
+
+        .timeline-step {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .timeline-step:nth-child(odd) {
+            flex-direction: row;
+        }
+
+        .timeline-step:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-card {
+            width: 45%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .step-year {
+            display: inline-block;
+            padding: 5px 15px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .step-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--bg-dark);
+            border: 3px solid rgba(139, 92, 246, 0.5);
+            border-radius: 50%;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .step-marker.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.7);
+        }
+
+        /* Why BMIET Section */
+        .why-section {
+            padding: 100px 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            background: rgba(139, 92, 246, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--accent);
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: var(--accent);
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .timeline-step {
+                flex-direction: column !important;
+                margin-bottom: 60px;
+            }
+            
+            .step-card {
+                width: 90%;
+                margin-bottom: 20px;
+            }
+            
+            .timeline-line, .step-marker {
+                left: 30px;
+            }
+            
+            header {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <a href="landingpage.html" class="back-button">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Home</span>
+            </a>
+        </div>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <div class="language-switcher">
+                <div class="language-toggle" id="language-toggle">
+                    <div class="language-flag flag-en"></div>
+                    <span>EN</span>
+                    <span class="material-icons">arrow_drop_down</span>
+                </div>
+                <div class="language-dropdown" id="language-dropdown">
+                    <div class="language-option active" data-lang="en">
+                        <div class="language-flag flag-en"></div>
+                        <span>English</span>
+                    </div>
+                    <div class="language-option" data-lang="hi">
+                        <div class="language-flag flag-hi"></div>
+                        <span>हिन्दी</span>
+                    </div>
+                </div>
+            </div>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 id="hero-title">A Legacy of Excellence Since 1999.</h1>
+            <p id="hero-subtitle">Welcome to BMIET, an institution dedicated to shaping the future of engineering education through innovation, research, and holistic development.</p>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+        <div class="container">
+            <h2 class="section-title" id="timeline-title">Our Journey</h2>
+            
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                
+                <!-- Step 1 -->
+                <div class="timeline-step">
+                    <div class="step-card">
+                        <div class="step-year">1999</div>
+                        <h3 class="step-title" id="step1-title">Foundation Laid</h3>
+                        <p class="step-description" id="step1-desc">BMIET was established with a vision to provide quality engineering education and create industry-ready professionals.</p>
+                    </div>
+                    <div class="step-marker active"></div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="timeline-step">
+                    <div class="step-card">
+                        <div class="step-year">2005</div>
+                        <h3 class="step-title" id="step2-title">First Accreditation</h3>
+                        <p class="step-description" id="step2-desc">Received NAAC accreditation, marking a significant milestone in our commitment to educational excellence.</p>
+                    </div>
+                    <div class="step-marker"></div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="timeline-step">
+                    <div class="step-card">
+                        <div class="step-year">2015</div>
+                        <h3 class="step-title" id="step3-title">Campus Expansion</h3>
+                        <p class="step-description" id="step3-desc">Expanded our campus with state-of-the-art laboratories and research facilities to foster innovation.</p>
+                    </div>
+                    <div class="step-marker"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why BMIET Section -->
+    <section class="why-section">
+        <div class="container">
+            <h2 class="section-title" id="why-title">Why Choose BMIET?</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-icons">verified</span>
+                    </div>
+                    <h3 class="feature-title" id="feature1-title">Proven Track Record</h3>
+                    <p class="feature-description" id="feature1-desc">Over two decades of excellence in engineering education with outstanding placement records.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-icons">school</span>
+                    </div>
+                    <h3 class="feature-title" id="feature2-title">Accredited & Affiliated</h3>
+                    <p class="feature-description" id="feature2-desc">Recognized by AICTE and affiliated with a prestigious university, ensuring quality education.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <span class="material-icons">diversity</span>
+                    </div>
+                    <h3 class="feature-title" id="feature3-title">Holistic Development</h3>
+                    <p class="feature-description" id="feature3-desc">Focus on overall personality development through extracurricular activities and soft skills training.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text" id="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright" id="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // Multilanguage Support
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const languageToggle = document.getElementById('language-toggle');
+            const languageDropdown = document.getElementById('language-dropdown');
+            const languageOptions = document.querySelectorAll('.language-option');
+            
+            // Text content for both languages
+            const content = {
+                en: {
+                    // Hero Section
+                    'hero-title': 'A Legacy of Excellence Since 1999.',
+                    'hero-subtitle': 'Welcome to BMIET, an institution dedicated to shaping the future of engineering education through innovation, research, and holistic development.',
+                    
+                    // Timeline Section
+                    'timeline-title': 'Our Journey',
+                    'step1-title': 'Foundation Laid',
+                    'step1-desc': 'BMIET was established with a vision to provide quality engineering education and create industry-ready professionals.',
+                    'step2-title': 'First Accreditation',
+                    'step2-desc': 'Received NAAC accreditation, marking a significant milestone in our commitment to educational excellence.',
+                    'step3-title': 'Campus Expansion',
+                    'step3-desc': 'Expanded our campus with state-of-the-art laboratories and research facilities to foster innovation.',
+                    
+                    // Why BMIET Section
+                    'why-title': 'Why Choose BMIET?',
+                    'feature1-title': 'Proven Track Record',
+                    'feature1-desc': 'Over two decades of excellence in engineering education with outstanding placement records.',
+                    'feature2-title': 'Accredited & Affiliated',
+                    'feature2-desc': 'Recognized by AICTE and affiliated with a prestigious university, ensuring quality education.',
+                    'feature3-title': 'Holistic Development',
+                    'feature3-desc': 'Focus on overall personality development through extracurricular activities and soft skills training.',
+                    
+                    // Footer
+                    'footer-text': 'B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.',
+                    'copyright': '© 2025 BMIET. All rights reserved.'
+                },
+                hi: {
+                    // Hero Section
+                    'hero-title': '१९९९ से उत्कृष्टता की एक विरासत।',
+                    'hero-subtitle': 'BMIET में आपका स्वागत है, जो इंजीनियरिंग के भविष्य को आकार देने के लिए समर्पित एक संस्थान है। नवाचार, अनुसंधान और समग्र विकास के माध्यम से शिक्षा प्रदान करना हमारा उद्देश्य है।',
+                    
+                    // Timeline Section
+                    'timeline-title': 'हमारी यात्रा',
+                    'step1-title': 'नींव रखी गई',
+                    'step1-desc': 'BMIET की स्थापना गुणवत्तापूर्ण इंजीनियरिंग शिक्षा प्रदान करने और उद्योग-तैयार पेशेवरों को बनाने के दृष्टिकोण के साथ की गई थी।',
+                    'step2-title': 'पहली मान्यता',
+                    'step2-desc': 'NAAC मान्यता प्राप्त की, जो शैक्षिक उत्कृष्टता के प्रति हमारी प्रतिबद्धता का एक महत्वपूर्ण मील का पत्थर है।',
+                    'step3-title': 'कैंपस विस्तार',
+                    'step3-desc': 'अत्याधुनिक प्रयोगशालाओं और अनुसंधान सुविधाओं के साथ अपने परिसर का विस्तार किया।',
+                    
+                    // Why BMIET Section
+                    'why-title': 'BMIET क्यों चुनें?',
+                    'feature1-title': 'सिद्ध ट्रैक रिकॉर्ड',
+                    'feature1-desc': 'इंजीनियरिंग शिक्षा में उत्कृष्टता के दो दशक से अधिक और उत्कृष्ट प्लेसमेंट रिकॉर्ड।',
+                    'feature2-title': 'मान्यता प्राप्त और संबद्ध',
+                    'feature2-desc': 'AICTE द्वारा मान्यता प्राप्त और एक प्रतिष्ठित विश्वविद्यालय से संबद्ध, गुणवत्तापूर्ण शिक्षा सुनिश्चित करता है।',
+                    'feature3-title': 'समग्र विकास',
+                    'feature3-desc': 'पाठ्येतर गतिविधियों और सॉफ्ट स्किल्स प्रशिक्षण के माध्यम से समग्र व्यक्तित्व विकास पर ध्यान केंद्रित।',
+                    
+                    // Footer
+                    'footer-text': 'बी. एम. इंस्टीट्यूट ऑफ इंजीनियरिंग एंड टेक्नोलॉजी - कल के इंजीनियरों को आकार देना।',
+                    'copyright': '© २०२५ BMIET. सर्वाधिकार सुरक्षित।'
+                }
+            };
+            
+            // Current language state
+            let currentLang = 'en';
+            
+            // Toggle dropdown visibility
+            languageToggle.addEventListener('click', () => {
+                languageDropdown.classList.toggle('active');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!languageToggle.contains(e.target) && !languageDropdown.contains(e.target)) {
+                    languageDropdown.classList.remove('active');
+                }
+            });
+            
+            // Language selection handler
+            languageOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const selectedLang = option.getAttribute('data-lang');
+                    
+                    // Don't do anything if same language is selected
+                    if (selectedLang === currentLang) {
+                        languageDropdown.classList.remove('active');
+                        return;
+                    }
+                    
+                    // Update active state
+                    languageOptions.forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                    
+                    // Update toggle button
+                    const flag = languageToggle.querySelector('.language-flag');
+                    const text = languageToggle.querySelector('span:not(.material-icons)');
+                    
+                    flag.className = `language-flag flag-${selectedLang}`;
+                    text.textContent = selectedLang.toUpperCase();
+                    
+                    // Change language with animation
+                    changeLanguage(selectedLang);
+                    
+                    // Close dropdown
+                    languageDropdown.classList.remove('active');
+                });
+            });
+            
+            // Change language with smooth transition
+            function changeLanguage(lang) {
+                // Get all elements that need translation
+                const elements = Object.keys(content[lang]);
+                
+                // Create animation timeline
+                const tl = gsap.timeline();
+                
+                // Fade out current content
+                tl.to(elements.map(id => `#${id}`), {
+                    opacity: 0,
+                    duration: 0.3,
+                    stagger: 0.05,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        // Update content
+                        elements.forEach(id => {
+                            const element = document.getElementById(id);
+                            if (element) {
+                                element.textContent = content[lang][id];
+                                
+                                // Add Hindi font class if needed
+                                if (lang === 'hi') {
+                                    element.classList.add('hindi-text');
+                                } else {
+                                    element.classList.remove('hindi-text');
+                                }
+                            }
+                        });
+                    }
+                })
+                // Fade in new content
+                .to(elements.map(id => `#${id}`), {
+                    opacity: 1,
+                    duration: 0.4,
+                    stagger: 0.05,
+                    ease: "power2.out"
+                });
+                
+                // Update current language
+                currentLang = lang;
+            }
+            
+            // Initialize with English content
+            changeLanguage('en');
+        });
+    </script>
+</body>
+</html>

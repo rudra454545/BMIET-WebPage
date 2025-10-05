@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academics & Courses - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 30, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles */
+        section {
+            min-height: 100vh;
+            padding: 100px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding-top: 150px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Department Constellation Section */
+        .constellation-section {
+            padding: 150px 0;
+            min-height: 120vh;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 80px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .constellation-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(10, 10, 10, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        #constellation-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .department-label {
+            position: absolute;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            background: rgba(10, 10, 10, 0.7);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        /* Department Detail Panel */
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--glass-border);
+            padding: 40px;
+            z-index: 2000;
+            transition: right 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            overflow-y: auto;
+        }
+
+        .detail-panel.active {
+            right: 0;
+        }
+
+        .close-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-panel:hover {
+            color: var(--accent);
+        }
+
+        .department-name {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .department-description {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            color: var(--text-secondary);
+        }
+
+        .programs-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .programs-list {
+            list-style-type: none;
+            margin-bottom: 30px;
+        }
+
+        .programs-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .mini-3d-container {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        /* Admissions & Calendar Section */
+        .admissions-section {
+            padding: 150px 0;
+        }
+
+        .admissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .admissions-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 40px;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .admissions-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .admissions-info {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .glow-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .glow-button:hover {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
+        }
+
+        .glow-button:hover::before {
+            left: 100%;
+        }
+
+        .calendar-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .semester {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .semester:hover {
+            background: rgba(40, 40, 40, 0.7);
+            transform: translateX(10px);
+        }
+
+        .semester-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .semester-dates {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .semester-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .semester:hover .semester-details {
+            max-height: 100px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .constellation-container {
+                height: 400px;
+            }
+            
+            .detail-panel {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .admissions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admissions-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Chart Your Course to the Future.</h1>
+            <p>Explore the disciplines that are shaping tomorrow's world, right here at BMIET.</p>
+        </div>
+    </section>
+
+    <!-- Department Constellation Section -->
+    <section class="constellation-section">
+        <div class="container">
+            <h2 class="section-title">Discover Our Disciplines</h2>
+            <div class="constellation-container">
+                <canvas id="constellation-canvas"></canvas>
+                <div class="department-label" id="department-label"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Department Detail Panel -->
+    <div class="detail-panel" id="detail-panel">
+        <button class="close-panel" id="close-panel">
+            <span class="material-icons">close</span>
+        </button>
+        <h2 class="department-name" id="detail-dept-name">Department Name</h2>
+        <p class="department-description" id="detail-dept-desc">Department description will appear here.</p>
+        
+        <h3 class="programs-title">Programs Offered</h3>
+        <ul class="programs-list" id="detail-programs">
+            <!-- Programs will be dynamically inserted -->
+        </ul>
+        
+        <h3 class="programs-title">Department Visualization</h3>
+        <div class="mini-3d-container" id="mini-3d-container">
+            <!-- Mini 3D visualization will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Admissions & Calendar Section -->
+    <section class="admissions-section">
+        <div class="container">
+            <h2 class="section-title">Your Path to Enrollment</h2>
+            <div class="admissions-grid">
+                <div class="admissions-card">
+                    <h3 class="card-title">Admissions</h3>
+                    <p class="admissions-info">Admission is based on national (JEE) and state-level (HSTES) examination ranks. Our selection process ensures we welcome the brightest minds to our campus.</p>
+                    <button class="glow-button">Learn More</button>
+                </div>
+                <div class="admissions-card">
+                    <h3 class="card-title">Academic Calendar</h3>
+                    <div class="calendar-timeline">
+                        <div class="semester">
+                            <h4 class="semester-title">Odd Semester</h4>
+                            <p class="semester-dates">August - January</p>
+                            <div class="semester-details">
+                                <p>Mid-Terms: October</p>
+                                <p>End-Terms: December</p>
+                            </div>
+                        </div>
+                        <div class="semester">
+                            <h4 class="semester-title">Even Semester</h4>
+                            <p class="semester-dates">March - June</p>
+                            <div class="semester-details">
+                                <p>Mid-Terms: April</p>
+                                <p>End-Terms: June</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate sections on scroll
+        gsap.utils.toArray('section').forEach(section => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 80%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // Department Constellation
+        const constellationCanvas = document.getElementById('constellation-canvas');
+        const ctx = constellationCanvas.getContext('2d');
+        const label = document.getElementById('department-label');
+        
+        // Set canvas dimensions
+        function setCanvasDimensions() {
+            constellationCanvas.width = constellationCanvas.offsetWidth;
+            constellationCanvas.height = constellationCanvas.offsetHeight;
+        }
+        
+        setCanvasDimensions();
+        window.addEventListener('resize', setCanvasDimensions);
+        
+        // Department data
+        const departments = [
+            { code: 'CSE', name: 'Computer Science & Engineering', 
+              description: 'Architects of the digital world, from AI to Cybersecurity.',
+              programs: ['B.Tech', 'M.Tech'],
+              color: '#8B5CF6' },
+            { code: 'ECE', name: 'Electronics & Communication Engineering', 
+              description: 'Connecting the world through cutting-edge electronics and communication.',
+              programs: ['B.Tech', 'M.Tech'],
+              color: '#06D6A0' },
+            { code: 'EEE', name: 'Electrical & Electronics Engineering', 
+              description: 'Powering the future with innovative electrical systems and technologies.',
+              programs: ['B.Tech'],
+              color: '#118AB2' },
+            { code: 'EE', name: 'Electrical Engineering', 
+              description: 'Designing and developing advanced electrical systems and power networks.',
+              programs: ['B.Tech'],
+              color: '#073B4C' },
+            { code: 'ME', name: 'Mechanical Engineering', 
+              description: 'Designing the physical machinery of the future.',
+              programs: ['B.Tech', 'M.Tech'],
+              color: '#EF476F' },
+            { code: 'CE', name: 'Civil Engineering', 
+              description: 'Building the infrastructure that shapes our modern world.',
+              programs: ['B.Tech'],
+              color: '#FFD166' },
+            { code: 'CHE', name: 'Chemical Engineering', 
+              description: 'Transforming raw materials into valuable products through chemical processes.',
+              programs: ['B.Tech'],
+              color: '#7209B7' },
+            { code: 'AER', name: 'Aeronautical Engineering', 
+              description: 'Designing and developing aircraft and spacecraft for the future of aviation.',
+              programs: ['B.Tech'],
+              color: '#3A86FF' }
+        ];
+        
+        // Position departments in a circular layout
+        const centerX = constellationCanvas.width / 2;
+        const centerY = constellationCanvas.height / 2;
+        const radius = Math.min(constellationCanvas.width, constellationCanvas.height) * 0.35;
+        
+        departments.forEach((dept, index) => {
+            const angle = (index / departments.length) * Math.PI * 2;
+            dept.x = centerX + Math.cos(angle) * radius;
+            dept.y = centerY + Math.sin(angle) * radius;
+            dept.size = 25;
+            dept.hovered = false;
+        });
+        
+        // Draw constellation
+        function drawConstellation() {
+            ctx.clearRect(0, 0, constellationCanvas.width, constellationCanvas.height);
+            
+            // Draw center B.Tech star
+            const centerStarSize = 40;
+            ctx.fillStyle = '#8B5CF6';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, centerStarSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add glow effect to center star
+            ctx.shadowColor = '#8B5CF6';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, centerStarSize * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Add B.Tech text in center
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 14px Montserrat';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('B.Tech', centerX, centerY);
+            
+            // Draw connections
+            ctx.strokeStyle = 'rgba(139, 92, 246, 0.2)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i < departments.length; i++) {
+                for (let j = i + 1; j < departments.length; j++) {
+                    const distance = Math.sqrt(
+                        Math.pow(departments[i].x - departments[j].x, 2) + 
+                        Math.pow(departments[i].y - departments[j].y, 2)
+                    );
+                    
+                    if (distance < radius * 1.5) {
+                        ctx.beginPath();
+                        ctx.moveTo(departments[i].x, departments[i].y);
+                        ctx.lineTo(departments[j].x, departments[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Draw departments
+            departments.forEach(dept => {
+                // Outer glow
+                const gradient = ctx.createRadialGradient(
+                    dept.x, dept.y, 0,
+                    dept.x, dept.y, dept.size * (dept.hovered ? 1.5 : 1)
+                );
+                gradient.addColorStop(0, dept.color);
+                gradient.addColorStop(0.7, dept.color + '80');
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(dept.x, dept.y, dept.size * (dept.hovered ? 1.5 : 1), 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner circle
+                ctx.fillStyle = dept.color;
+                ctx.beginPath();
+                ctx.arc(dept.x, dept.y, dept.size * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Department code
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 12px Montserrat';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dept.code, dept.x, dept.y);
+            });
+            
+            requestAnimationFrame(drawConstellation);
+        }
+        
+        drawConstellation();
+        
+        // Mouse interaction for constellation
+        constellationCanvas.addEventListener('mousemove', (e) => {
+            const rect = constellationCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            let hoveredDept = null;
+            
+            departments.forEach(dept => {
+                const distance = Math.sqrt(Math.pow(x - dept.x, 2) + Math.pow(y - dept.y, 2));
+                dept.hovered = distance < dept.size;
+                
+                if (dept.hovered) {
+                    hoveredDept = dept;
+                }
+            });
+            
+            if (hoveredDept) {
+                label.textContent = hoveredDept.name;
+                label.style.left = `${hoveredDept.x + 30}px`;
+                label.style.top = `${hoveredDept.y - 10}px`;
+                label.style.opacity = '1';
+                constellationCanvas.style.cursor = 'pointer';
+            } else {
+                label.style.opacity = '0';
+                constellationCanvas.style.cursor = 'default';
+            }
+        });
+        
+        constellationCanvas.addEventListener('click', (e) => {
+            const rect = constellationCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            departments.forEach(dept => {
+                const distance = Math.sqrt(Math.pow(x - dept.x, 2) + Math.pow(y - dept.y, 2));
+                
+                if (distance < dept.size) {
+                    openDepartmentPanel(dept);
+                }
+            });
+        });
+        
+        // Department Detail Panel
+        const detailPanel = document.getElementById('detail-panel');
+        const closePanelBtn = document.getElementById('close-panel');
+        const deptName = document.getElementById('detail-dept-name');
+        const deptDesc = document.getElementById('detail-dept-desc');
+        const programsList = document.getElementById('detail-programs');
+        const mini3dContainer = document.getElementById('mini-3d-container');
+        
+        let miniScene, miniCamera, miniRenderer, miniObject;
+        
+        function openDepartmentPanel(dept) {
+            // Update panel content
+            deptName.textContent = dept.name;
+            deptDesc.textContent = dept.description;
+            
+            // Clear and update programs list
+            programsList.innerHTML = '';
+            dept.programs.forEach(program => {
+                const li = document.createElement('li');
+                li.textContent = program;
+                programsList.appendChild(li);
+            });
+            
+            // Create mini 3D visualization
+            createMini3DVisualization(dept.code);
+            
+            // Show panel with animation
+            detailPanel.classList.add('active');
+        }
+        
+        function closeDepartmentPanel() {
+            detailPanel.classList.remove('active');
+            
+            // Clean up mini 3D scene
+            if (miniRenderer) {
+                miniRenderer.dispose();
+            }
+        }
+        
+        closePanelBtn.addEventListener('click', closeDepartmentPanel);
+        
+        // Create department-specific 3D visualizations
+        function createMini3DVisualization(deptCode) {
+            // Clear previous visualization
+            mini3dContainer.innerHTML = '';
+            
+            // Set up mini scene
+            miniScene = new THREE.Scene();
+            miniCamera = new THREE.PerspectiveCamera(75, 450 / 200, 0.1, 1000);
+            miniRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            miniRenderer.setSize(450, 200);
+            mini3dContainer.appendChild(miniRenderer.domElement);
+            
+            // Add lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            miniScene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            miniScene.add(directionalLight);
+            
+            // Create department-specific 3D object
+            switch(deptCode) {
+                case 'CSE':
+                    // Rotating wireframe cube for CSE
+                    const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
+                    const cubeMaterial = new THREE.MeshBasicMaterial({ 
+                        color: 0x8B5CF6, 
+                        wireframe: true 
+                    });
+                    miniObject = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                    break;
+                    
+                case 'ME':
+                    // Rotating gears for Mechanical Engineering
+                    const gearGroup = new THREE.Group();
+                    
+                    // Create multiple gears
+                    for (let i = 0; i < 3; i++) {
+                        const gearGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.2, 12);
+                        const gearMaterial = new THREE.MeshPhongMaterial({ 
+                            color: 0xEF476F,
+                            shininess: 100
+                        });
+                        const gear = new THREE.Mesh(gearGeometry, gearMaterial);
+                        gear.position.x = (i - 1) * 1.5;
+                        gear.rotation.x = Math.PI / 2;
+                        gearGroup.add(gear);
+                    }
+                    
+                    miniObject = gearGroup;
+                    break;
+                    
+                case 'ECE':
+                    // Waveform visualization for ECE
+                    const waveGroup = new THREE.Group();
+                    
+                    // Create sine wave
+                    const points = [];
+                    for (let i = 0; i <= 20; i++) {
+                        points.push(new THREE.Vector3(
+                            (i / 5) - 2, 
+                            Math.sin(i * 0.5) * 0.5, 
+                            0
+                        ));
+                    }
+                    
+                    const waveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const waveMaterial = new THREE.LineBasicMaterial({ color: 0x06D6A0 });
+                    const waveLine = new THREE.Line(waveGeometry, waveMaterial);
+                    waveGroup.add(waveLine);
+                    
+                    miniObject = waveGroup;
+                    break;
+                    
+                case 'CHE':
+                    // Chemical process visualization for Chemical Engineering
+                    const chemicalGroup = new THREE.Group();
+                    
+                    // Create bars of varying heights
+                    const barHeights = [1, 1.5, 0.8, 2, 1.2];
+                    for (let i = 0; i < 5; i++) {
+                        const barGeometry = new THREE.BoxGeometry(0.3, barHeights[i], 0.3);
+                        const barMaterial = new THREE.MeshPhongMaterial({ 
+                            color: 0x7209B7 
+                        });
+                        const bar = new THREE.Mesh(barGeometry, barMaterial);
+                        bar.position.x = (i - 2) * 0.8;
+                        bar.position.y = barHeights[i] / 2;
+                        chartGroup.add(bar);
+                    }
+                    
+                    miniObject = chartGroup;
+                    break;
+                    
+                default:
+                    // Default: rotating icosahedron
+                    const defaultGeometry = new THREE.IcosahedronGeometry(1, 0);
+                    const defaultMaterial = new THREE.MeshPhongMaterial({ 
+                        color: 0x8B5CF6,
+                        wireframe: true
+                    });
+                    miniObject = new THREE.Mesh(defaultGeometry, defaultMaterial);
+            }
+            
+            miniScene.add(miniObject);
+            miniCamera.position.z = 5;
+            
+            // Animation loop for mini visualization
+            function animateMini() {
+                requestAnimationFrame(animateMini);
+                
+                if (miniObject) {
+                    // Rotate object based on department
+                    switch(deptCode) {
+                        case 'CSE':
+                            miniObject.rotation.x += 0.01;
+                            miniObject.rotation.y += 0.01;
+                            break;
+                        case 'ME':
+                            miniObject.rotation.z += 0.02;
+                            break;
+                        case 'ECE':
+                            // Pulsing effect for waveform
+                            miniObject.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.2;
+                            break;
+                        case 'CHE':
+                            // Chemical process animation
+                            miniObject.children.forEach((bar, index) => {
+                                bar.scale.y = 1 + Math.sin(Date.now() * 0.001 + index) * 0.2;
+                            });
+                            break;
+                        default:
+                            miniObject.rotation.x += 0.01;
+                            miniObject.rotation.y += 0.01;
+                    }
+                }
+                
+                miniRenderer.render(miniScene, miniCamera);
+            }
+            
+            animateMini();
+        }
+    </script>
+</body>
+</html>

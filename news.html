@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/Flip.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles - Continuous Flow */
+        section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Featured Story Section */
+        .featured-story {
+            padding: 60px 0 80px;
+        }
+
+        .featured-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            display: flex;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .featured-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .featured-image {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            min-height: 350px;
+        }
+
+        .featured-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .featured-card:hover .featured-image img {
+            transform: scale(1.05);
+        }
+
+        .featured-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .category-tag {
+            display: inline-block;
+            padding: 6px 15px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            align-self: flex-start;
+        }
+
+        .featured-title {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .featured-excerpt {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .read-more {
+            display: inline-block;
+            padding: 12px 25px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+        }
+
+        .read-more:hover {
+            background: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        /* News Grid Section */
+        .news-grid-section {
+            padding: 80px 0 100px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .news-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .news-card.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        .news-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .news-image {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .news-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .news-card:hover .news-image img {
+            transform: scale(1.1);
+        }
+
+        .news-content {
+            padding: 25px;
+        }
+
+        .news-category {
+            display: inline-block;
+            padding: 5px 12px;
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent);
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .news-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .news-date {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .news-excerpt {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .news-read-more {
+            display: inline-block;
+            color: var(--accent);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .news-read-more:hover {
+            color: var(--accent-light);
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        /* News Modal */
+        .news-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 40px;
+        }
+
+        .news-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .news-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--accent);
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-category {
+            display: inline-block;
+            padding: 6px 15px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .modal-date {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .modal-body {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1.1rem;
+        }
+
+        .modal-body p {
+            margin-bottom: 20px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .featured-card {
+                flex-direction: column;
+            }
+            
+            .featured-image {
+                min-height: 250px;
+            }
+            
+            .featured-title {
+                font-size: 1.8rem;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-title {
+                font-size: 2rem;
+            }
+            
+            .modal-image {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>The Pulse of Progress.</h1>
+            <p>Stay current with the latest breakthroughs, achievements, and stories from the BMIET community.</p>
+        </div>
+    </section>
+
+    <!-- Featured Story Section -->
+    <section class="featured-story">
+        <div class="container">
+            <div class="featured-card">
+                <div class="featured-image">
+                    <img src="https://placehold.co/800x600/1a1a2a/8B5CF6?text=Dr.+Vishal+Jain+Award" alt="Dr. Vishal Jain Award">
+                </div>
+                <div class="featured-content">
+                    <span class="category-tag">Achievements</span>
+                    <h2 class="featured-title">Dr. Vishal Jain Honored with 'Dean of the Year' Award</h2>
+                    <p class="featured-excerpt">In a landmark achievement for BMIET, Dr. Vishal Jain, Dean Academics, was awarded the prestigious 'Dean of the Year for Academic Achievement' at the 7th Higher Education Summit & Awards 2025, recognizing his profound contributions to academic innovation.</p>
+                    <button class="read-more" data-article="featured">Read Full Story</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Grid Section -->
+    <section class="news-grid-section">
+        <div class="container">
+            <h2 class="section-title">Latest Updates</h2>
+            
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="academics">Academics</button>
+                <button class="filter-btn" data-filter="campus">Campus Life</button>
+                <button class="filter-btn" data-filter="achievements">Achievements</button>
+            </div>
+            
+            <div class="news-grid" id="news-grid">
+                <!-- Article 1 -->
+                <div class="news-card" data-category="academics">
+                    <div class="news-image">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=AI+%26+Robotics+Center" alt="AI & Robotics Center">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-category">Academics</span>
+                        <h3 class="news-title">BMIET Inaugurates New Center for AI & Robotics</h3>
+                        <p class="news-date">September 2025</p>
+                        <p class="news-excerpt">BMIET has established a state-of-the-art Center for Artificial Intelligence and Robotics, equipped with cutting-edge technology to foster innovation and research in these transformative fields.</p>
+                        <span class="news-read-more" data-article="ai-center">Read More</span>
+                    </div>
+                </div>
+                
+                <!-- Article 2 -->
+                <div class="news-card" data-category="campus">
+                    <div class="news-image">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Ignite+2025+Fest" alt="Ignite 2025 Fest">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-category">Campus Life</span>
+                        <h3 class="news-title">'Ignite 2025' Annual Fest Sets New Records for Participation</h3>
+                        <p class="news-date">August 2025</p>
+                        <p class="news-excerpt">The annual cultural and technical fest 'Ignite 2025' witnessed unprecedented participation with over 5,000 students from across the country competing in various events and workshops.</p>
+                        <span class="news-read-more" data-article="ignite">Read More</span>
+                    </div>
+                </div>
+                
+                <!-- Article 3 -->
+                <div class="news-card" data-category="achievements">
+                    <div class="news-image">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Code+for+India+Hackathon" alt="Code for India Hackathon">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-category">Achievements</span>
+                        <h3 class="news-title">Student Team from BMIET Wins National 'Code for India' Hackathon</h3>
+                        <p class="news-date">July 2025</p>
+                        <p class="news-excerpt">A team of four computer science students from BMIET emerged victorious at the national 'Code for India' hackathon, developing an innovative solution for urban waste management using AI and IoT.</p>
+                        <span class="news-read-more" data-article="hackathon">Read More</span>
+                    </div>
+                </div>
+                
+                <!-- Additional Articles -->
+                <div class="news-card" data-category="academics">
+                    <div class="news-image">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Research+Grant" alt="Research Grant">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-category">Academics</span>
+                        <h3 class="news-title">BMIET Receives ₹2.5 Crore Research Grant for Sustainable Energy Projects</h3>
+                        <p class="news-date">June 2025</p>
+                        <p class="news-excerpt">The Department of Science and Technology has awarded BMIET a significant research grant to develop innovative solutions in renewable energy and sustainable technologies.</p>
+                        <span class="news-read-more" data-article="grant">Read More</span>
+                    </div>
+                </div>
+                
+                <div class="news-card" data-category="campus">
+                    <div class="news-image">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=New+Hostel+Block" alt="New Hostel Block">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-category">Campus Life</span>
+                        <h3 class="news-title">New Eco-Friendly Hostel Block Inaugurated at BMIET Campus</h3>
+                        <p class="news-date">May 2025</p>
+                        <p class="news-excerpt">BMIET has expanded its residential facilities with a new eco-friendly hostel block featuring solar power, rainwater harvesting, and smart energy management systems.</p>
+                        <span class="news-read-more" data-article="hostel">Read More</span>
+                    </div>
+                </div>
+                
+                <div class="news-card" data-category="achievements">
+                    <div class="news-image">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Faculty+Achievement" alt="Faculty Achievement">
+                    </div>
+                    <div class="news-content">
+                        <span class="news-category">Achievements</span>
+                        <h3 class="news-title">BMIET Faculty Members Publish Groundbreaking Research in International Journals</h3>
+                        <p class="news-date">April 2025</p>
+                        <p class="news-excerpt">Five faculty members from various departments have published their research in prestigious international journals, showcasing BMIET's growing academic influence.</p>
+                        <span class="news-read-more" data-article="research">Read More</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Modal -->
+    <div class="news-modal" id="news-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">
+                <span class="material-icons">close</span>
+            </button>
+            <div class="modal-image">
+                <img id="modal-img" src="" alt="Article Image">
+            </div>
+            <span class="modal-category" id="modal-category">Category</span>
+            <h2 class="modal-title" id="modal-title">Article Title</h2>
+            <p class="modal-date" id="modal-date">Date</p>
+            <div class="modal-body" id="modal-body">
+                <!-- Article content will be dynamically inserted -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger, Flip);
+
+        // Animate sections on scroll with continuous flow
+        gsap.utils.toArray('section').forEach((section, index) => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 85%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // News Filtering with GSAP Flip
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const newsCards = document.querySelectorAll('.news-card');
+        const newsGrid = document.getElementById('news-grid');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                const filter = button.getAttribute('data-filter');
+                
+                // Use GSAP Flip for smooth filtering animation
+                const state = Flip.getState(newsCards);
+                
+                // Show/hide cards based on filter
+                newsCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+                
+                // Animate the transition
+                Flip.from(state, {
+                    duration: 0.5,
+                    ease: "power2.inOut",
+                    scale: true,
+                    absolute: true,
+                    onEnter: elements => gsap.fromTo(elements, 
+                        { opacity: 0, scale: 0.8 }, 
+                        { opacity: 1, scale: 1, duration: 0.3 }
+                    ),
+                    onLeave: elements => gsap.to(elements, 
+                        { opacity: 0, scale: 0.8, duration: 0.3 }
+                    )
+                });
+            });
+        });
+
+        // News Modal Functionality
+        const newsModal = document.getElementById('news-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalCategory = document.getElementById('modal-category');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDate = document.getElementById('modal-date');
+        const modalBody = document.getElementById('modal-body');
+        
+        // Article data for modal content
+        const articleData = {
+            'featured': {
+                title: "Dr. Vishal Jain Honored with 'Dean of the Year' Award",
+                category: "Achievements",
+                date: "September 2025",
+                image: "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Dr.+Vishal+Jain+Award",
+                content: `
+                    <p>In a landmark achievement for BMIET, Dr. Vishal Jain, Dean Academics, was awarded the prestigious 'Dean of the Year for Academic Achievement' at the 7th Higher Education Summit & Awards 2025, recognizing his profound contributions to academic innovation.</p>
+                    <p>The award ceremony, held in New Delhi, brought together academic leaders from across the country to celebrate excellence in higher education. Dr. Jain was recognized for his transformative leadership in curriculum development, research initiatives, and student mentorship programs.</p>
+                    <p>Under Dr. Jain's guidance, BMIET has introduced several innovative academic programs, strengthened industry-academia partnerships, and significantly increased research output. His vision for a more interdisciplinary and industry-relevant curriculum has positioned BMIET as a leader in technical education.</p>
+                    <p>"This recognition is not just a personal achievement but a testament to the collective efforts of our entire academic community," said Dr. Jain in his acceptance speech. "At BMIET, we believe in creating an ecosystem where both students and faculty can thrive and push the boundaries of knowledge."</p>
+                    <p>The award has brought national recognition to BMIET's academic excellence and commitment to innovation in engineering education.</p>
+                `
+            },
+            'ai-center': {
+                title: "BMIET Inaugurates New Center for AI & Robotics",
+                category: "Academics",
+                date: "September 2025",
+                image: "https://placehold.co/800x600/1a1a2a/8B5CF6?text=AI+%26+Robotics+Center",
+                content: `
+                    <p>BMIET has established a state-of-the-art Center for Artificial Intelligence and Robotics, equipped with cutting-edge technology to foster innovation and research in these transformative fields.</p>
+                    <p>The new center spans over 10,000 square feet and features advanced computing infrastructure, specialized robotics labs, and collaborative workspaces designed to encourage interdisciplinary research.</p>
+                    <p>Key facilities include a high-performance computing cluster with dedicated GPUs for AI training, multiple robotics testing environments, and specialized equipment for computer vision and natural language processing research.</p>
+                    <p>"This center represents our commitment to staying at the forefront of technological innovation," said Dr. Ananya Sharma, who will lead the center. "We're creating an environment where students and researchers can work on real-world problems using the latest tools and methodologies."</p>
+                    <p>The center will host research projects in areas such as autonomous systems, machine learning applications in healthcare, natural language processing, and human-robot interaction. It will also offer specialized courses and workshops for students and industry professionals.</p>
+                    <p>Industry partnerships with leading tech companies will provide students with opportunities for internships and collaborative projects, ensuring that the research conducted at the center has practical applications and real-world impact.</p>
+                `
+            },
+            'ignite': {
+                title: "'Ignite 2025' Annual Fest Sets New Records for Participation",
+                category: "Campus Life",
+                date: "August 2025",
+                image: "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Ignite+2025+Fest",
+                content: `
+                    <p>The annual cultural and technical fest 'Ignite 2025' witnessed unprecedented participation with over 5,000 students from across the country competing in various events and workshops.</p>
+                    <p>This year's edition featured more than 50 events spanning technical competitions, cultural performances, literary events, and sports tournaments. The fest theme, "Innovate. Inspire. Ignite," focused on fostering creativity and collaboration among participants.</p>
+                    <p>Highlights included a robotics competition that challenged participants to build autonomous vehicles, a hackathon focused on sustainable development solutions, and cultural performances showcasing diverse talents from across India.</p>
+                    <p>"We wanted to create a platform where students could not only compete but also learn from each other and industry experts," said the student fest coordinator. "The response has been overwhelming, with participants from over 100 colleges across the country."</p>
+                    <p>Industry leaders and alumni conducted workshops on emerging technologies, career development, and entrepreneurship, providing valuable insights to students. The fest also featured performances by renowned artists and bands, creating a vibrant campus atmosphere.</p>
+                    <p>The success of Ignite 2025 has set a new benchmark for college fests in the region, with plans already underway for an even larger and more diverse event next year.</p>
+                `
+            },
+            'hackathon': {
+                title: "Student Team from BMIET Wins National 'Code for India' Hackathon",
+                category: "Achievements",
+                date: "July 2025",
+                image: "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Code+for+India+Hackathon",
+                content: `
+                    <p>A team of four computer science students from BMIET emerged victorious at the national 'Code for India' hackathon, developing an innovative solution for urban waste management using AI and IoT.</p>
+                    <p>The team, named 'EcoTech Innovators,' competed against 200 teams from top engineering colleges across India. Their winning project, 'SmartBin,' uses sensors and machine learning to optimize waste collection routes and improve recycling efficiency.</p>
+                    <p>"Our system addresses a critical urban challenge by reducing fuel consumption for waste collection vehicles by up to 30% and increasing recycling rates through better sorting at the source," explained team leader Priya Sharma.</p>
+                    <p>The 48-hour hackathon challenged participants to develop technology solutions for pressing social and environmental issues. The BMIET team impressed judges with their technical implementation, user-centered design, and comprehensive business model.</p>
+                    <p>As winners, the team received a cash prize of ₹5 lakh and an opportunity to implement their solution in partnership with municipal corporations in three major cities. Industry mentors have also offered guidance to help scale the project.</p>
+                    <p>This victory highlights BMIET's focus on practical, socially relevant engineering education and the exceptional talent of its students in applying technology to solve real-world problems.</p>
+                `
+            }
+        };
+        
+        // Open modal when "Read More" is clicked
+        document.querySelectorAll('.read-more, .news-read-more').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const articleId = e.target.getAttribute('data-article');
+                const article = articleData[articleId];
+                
+                if (article) {
+                    // Update modal content
+                    modalImg.src = article.image;
+                    modalCategory.textContent = article.category;
+                    modalTitle.textContent = article.title;
+                    modalDate.textContent = article.date;
+                    modalBody.innerHTML = article.content;
+                    
+                    // Show modal with animation
+                    newsModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+        
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            newsModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Close modal when clicking outside content
+        newsModal.addEventListener('click', (e) => {
+            if (e.target === newsModal) {
+                newsModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    </script>
+</body>
+</html>

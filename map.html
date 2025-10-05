@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Map - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 40vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* 3D Campus Section */
+        .campus-section {
+            position: relative;
+            height: 80vh;
+            margin-bottom: 50px;
+        }
+
+        #campus-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Building Info Card */
+        .building-info {
+            position: absolute;
+            top: 50%;
+            right: -400px;
+            transform: translateY(-50%);
+            width: 350px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            z-index: 10;
+            transition: right 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .building-info.active {
+            right: 30px;
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .info-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .info-description {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .tour-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tour-button:hover {
+            background: var(--accent-light);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Virtual Tour Modal */
+        .tour-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .tour-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tour-header {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+
+        .tour-title {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+        }
+
+        .close-tour {
+            width: 50px;
+            height: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-tour:hover {
+            background: var(--accent);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        #tour-canvas {
+            width: 90%;
+            max-width: 1000px;
+            height: 70vh;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Instructions */
+        .instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 15px 25px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            color: var(--text-secondary);
+            z-index: 5;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .building-info {
+                width: 300px;
+            }
+            
+            .building-info.active {
+                right: 15px;
+            }
+            
+            #tour-canvas {
+                width: 95%;
+                height: 60vh;
+            }
+            
+            header {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Explore Your Future Home.</h1>
+            <p>Navigate our world-class campus. Your journey begins here.</p>
+        </div>
+    </section>
+
+    <!-- 3D Campus Section -->
+    <section class="campus-section">
+        <canvas id="campus-canvas"></canvas>
+        
+        <!-- Building Info Card -->
+        <div class="building-info" id="building-info">
+            <div class="info-header">
+                <div class="info-icon">
+                    <span class="material-icons">business</span>
+                </div>
+                <h2 class="info-title" id="info-title">Building Name</h2>
+            </div>
+            <p class="info-description" id="info-description">Building description will appear here.</p>
+            <button class="tour-button" id="tour-button">
+                <span class="material-icons">360</span>
+                Take 360° Tour
+            </button>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <p>Click and drag to rotate • Scroll to zoom • Click on buildings for details</p>
+        </div>
+    </section>
+
+    <!-- Virtual Tour Modal -->
+    <div class="tour-modal" id="tour-modal">
+        <div class="tour-header">
+            <h2 class="tour-title" id="tour-title">Virtual Tour</h2>
+            <button class="close-tour" id="close-tour">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <canvas id="tour-canvas"></canvas>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const bgScene = new THREE.Scene();
+        const bgCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const bgRenderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        bgRenderer.setSize(window.innerWidth, window.innerHeight);
+        bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs for background
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            bgScene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights to background
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        bgScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        bgScene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        bgScene.add(pointLight);
+
+        bgCamera.position.z = 5;
+
+        // Mouse interaction for background
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Background animation loop
+        function animateBackground() {
+            requestAnimationFrame(animateBackground);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            bgCamera.position.x += (target.x - bgCamera.position.x) * 0.05;
+            bgCamera.position.y += (target.y - bgCamera.position.y) * 0.05;
+            bgCamera.lookAt(bgScene.position);
+            
+            bgRenderer.render(bgScene, bgCamera);
+        }
+
+        // Handle window resize for background
+        window.addEventListener('resize', () => {
+            bgCamera.aspect = window.innerWidth / window.innerHeight;
+            bgCamera.updateProjectionMatrix();
+            bgRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start background animation
+        animateBackground();
+
+        // 3D Campus Map
+        const campusScene = new THREE.Scene();
+        const campusCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const campusRenderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('campus-canvas'),
+            antialias: true
+        });
+
+        campusRenderer.setSize(window.innerWidth, window.innerHeight);
+        campusRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        campusRenderer.setClearColor(0x0a0a1a, 0); // Transparent background
+
+        // Campus lighting
+        const campusAmbientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        campusScene.add(campusAmbientLight);
+
+        const campusDirectionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        campusDirectionalLight.position.set(10, 10, 5);
+        campusScene.add(campusDirectionalLight);
+
+        // Ground plane
+        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const groundMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x1a1a2a, 
+            transparent: true, 
+            opacity: 0.5 
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -5;
+        campusScene.add(ground);
+
+        // Grid helper
+        const gridHelper = new THREE.GridHelper(100, 20, 0x8B5CF6, 0x1a1a2a);
+        gridHelper.position.y = -4.9;
+        campusScene.add(gridHelper);
+
+        // Enhanced Building data for University Campus - Organized Layout
+        const buildings = [
+            // Academic Block (North)
+            {
+                name: "Administrative Office",
+                description: "The administrative heart of BMIET, housing key departments, admissions office, and student services.",
+                position: { x: -15, y: 0, z: -25 },
+                size: { width: 12, height: 8, depth: 10 },
+                color: 0x8B5CF6,
+                type: "admin"
+            },
+            {
+                name: "ECE Building",
+                description: "Electronics and Communication Engineering department with advanced laboratories and research facilities.",
+                position: { x: 0, y: 0, z: -25 },
+                size: { width: 15, height: 10, depth: 12 },
+                color: 0xa78bfa,
+                type: "academic"
+            },
+            {
+                name: "CSE Building",
+                description: "Computer Science Engineering department featuring modern computer labs and innovation centers.",
+                position: { x: 15, y: 0, z: -25 },
+                size: { width: 15, height: 10, depth: 12 },
+                color: 0x8B5CF6,
+                type: "academic"
+            },
+            {
+                name: "Central Library",
+                description: "A hub of knowledge with a vast collection of digital and print resources, study areas, and research facilities.",
+                position: { x: 0, y: 0, z: -10 },
+                size: { width: 20, height: 12, depth: 15 },
+                color: 0x6B46C1,
+                type: "library"
+            },
+            {
+                name: "Main Auditorium",
+                description: "State-of-the-art auditorium hosting conferences, seminars, cultural events, and graduation ceremonies.",
+                position: { x: 25, y: 0, z: -10 },
+                size: { width: 18, height: 8, depth: 12 },
+                color: 0x7C3AED,
+                type: "auditorium"
+            },
+            
+            // Central Area
+            {
+                name: "Research Center",
+                description: "Cutting-edge research facilities for faculty and students working on innovative projects.",
+                position: { x: -20, y: 0, z: 0 },
+                size: { width: 12, height: 8, depth: 10 },
+                color: 0x6366F1,
+                type: "research"
+            },
+            {
+                name: "Placement Cell",
+                description: "Career guidance and placement services helping students secure their dream jobs.",
+                position: { x: 20, y: 0, z: 0 },
+                size: { width: 10, height: 6, depth: 8 },
+                color: 0x8B5CF6,
+                type: "placement"
+            },
+            
+            // Residential Area (South)
+            {
+                name: "Boys Hostel",
+                description: "Modern residential facility for male students with comfortable accommodations and common areas.",
+                position: { x: -25, y: 0, z: 15 },
+                size: { width: 16, height: 8, depth: 12 },
+                color: 0x8B5CF6,
+                type: "hostel"
+            },
+            {
+                name: "Girls Hostel",
+                description: "Secure and modern residential facility for female students with all necessary amenities.",
+                position: { x: 25, y: 0, z: 15 },
+                size: { width: 16, height: 8, depth: 12 },
+                color: 0xa78bfa,
+                type: "hostel"
+            },
+            {
+                name: "Cafeteria",
+                description: "Multi-cuisine food court serving healthy and delicious meals for students and staff.",
+                position: { x: 0, y: 0, z: 20 },
+                size: { width: 15, height: 6, depth: 12 },
+                color: 0xEC4899,
+                type: "cafeteria"
+            },
+            
+            // Sports & Workshop Area (East)
+            {
+                name: "Sports Complex",
+                description: "Modern facilities for indoor and outdoor sports, gymnasium, and recreational activities.",
+                position: { x: 30, y: 0, z: 5 },
+                size: { width: 20, height: 6, depth: 15 },
+                color: 0x10B981,
+                type: "sports"
+            },
+            {
+                name: "Mechanical Workshop",
+                description: "Advanced workshop facilities for Mechanical Engineering students with modern machinery and tools.",
+                position: { x: 30, y: 0, z: 25 },
+                size: { width: 18, height: 8, depth: 12 },
+                color: 0xF59E0B,
+                type: "workshop"
+            },
+            
+            // Parking Area (Far South)
+            {
+                name: "Parking Area",
+                description: "Spacious parking facility for students, staff, and visitors with security monitoring.",
+                position: { x: 0, y: 0, z: 35 },
+                size: { width: 30, height: 1, depth: 25 },
+                color: 0x6B7280,
+                type: "parking"
+            }
+        ];
+
+        // Add campus environment elements
+        function createTree(x, z, height = 3) {
+            // Tree trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.5, height, 8);
+            const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(x, height / 2, z);
+            campusScene.add(trunk);
+
+            // Tree foliage
+            const foliageGeometry = new THREE.SphereGeometry(height * 0.8, 8, 6);
+            const foliageMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+            const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+            foliage.position.set(x, height + height * 0.4, z);
+            campusScene.add(foliage);
+        }
+
+        function createPathway(startX, startZ, endX, endZ) {
+            const pathGeometry = new THREE.PlaneGeometry(Math.abs(endX - startX), 2);
+            const pathMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x4A4A4A, 
+                transparent: true, 
+                opacity: 0.8 
+            });
+            const path = new THREE.Mesh(pathGeometry, pathMaterial);
+            path.rotation.x = -Math.PI / 2;
+            path.position.set((startX + endX) / 2, -4.8, (startZ + endZ) / 2);
+            campusScene.add(path);
+        }
+
+        function createLampPost(x, z) {
+            // Lamp post
+            const postGeometry = new THREE.CylinderGeometry(0.1, 0.1, 4, 8);
+            const postMaterial = new THREE.MeshPhongMaterial({ color: 0x696969 });
+            const post = new THREE.Mesh(postGeometry, postMaterial);
+            post.position.set(x, 2, z);
+            campusScene.add(post);
+
+            // Light
+            const lightGeometry = new THREE.SphereGeometry(0.3, 8, 6);
+            const lightMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xFFFF99,
+                emissive: 0xFFFF99,
+                emissiveIntensity: 0.5
+            });
+            const light = new THREE.Mesh(lightGeometry, lightMaterial);
+            light.position.set(x, 4.2, z);
+            campusScene.add(light);
+
+            // Add point light
+            const pointLight = new THREE.PointLight(0xFFFF99, 0.5, 10);
+            pointLight.position.set(x, 4, z);
+            campusScene.add(pointLight);
+        }
+
+        // Create campus environment
+        // Add trees around the campus
+        const treePositions = [
+            { x: -30, z: -30 }, { x: -25, z: -25 }, { x: -20, z: -30 },
+            { x: 30, z: -30 }, { x: 25, z: -25 }, { x: 20, z: -30 },
+            { x: -30, z: 30 }, { x: -25, z: 25 }, { x: -20, z: 30 },
+            { x: 30, z: 30 }, { x: 25, z: 25 }, { x: 20, z: 30 },
+            { x: 0, z: -35 }, { x: 0, z: 35 }, { x: -35, z: 0 }, { x: 35, z: 0 }
+        ];
+
+        treePositions.forEach(pos => {
+            createTree(pos.x, pos.z, Math.random() * 2 + 2);
+        });
+
+        // Add pathways connecting buildings
+        createPathway(-20, -10, 0, -5); // Admin to Library
+        createPathway(0, -5, 20, -10); // Library to Auditorium
+        createPathway(-10, -20, 10, -20); // ECE to CSE
+        createPathway(0, -5, 0, 15); // Library to Cafeteria
+        createPathway(-25, 10, 25, 10); // Boys Hostel to Girls Hostel
+
+        // Add lamp posts
+        const lampPositions = [
+            { x: -15, z: -15 }, { x: 15, z: -15 }, { x: -15, z: 15 },
+            { x: 15, z: 15 }, { x: 0, z: 0 }, { x: -10, z: 0 }, { x: 10, z: 0 }
+        ];
+
+        lampPositions.forEach(pos => {
+            createLampPost(pos.x, pos.z);
+        });
+
+        // Add decorative elements
+        function createFountain(x, z) {
+            // Fountain base
+            const baseGeometry = new THREE.CylinderGeometry(2, 3, 1, 16);
+            const baseMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEEB });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.set(x, 0.5, z);
+            campusScene.add(base);
+
+            // Fountain center
+            const centerGeometry = new THREE.CylinderGeometry(0.5, 1, 2, 8);
+            const centerMaterial = new THREE.MeshPhongMaterial({ color: 0x4682B4 });
+            const center = new THREE.Mesh(centerGeometry, centerMaterial);
+            center.position.set(x, 2, z);
+            campusScene.add(center);
+        }
+
+        // Add fountain in the center
+        createFountain(0, 0);
+
+        // Add garden areas
+        function createGarden(x, z, size = 5) {
+            // Garden base
+            const gardenGeometry = new THREE.CircleGeometry(size, 16);
+            const gardenMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x228B22,
+                transparent: true,
+                opacity: 0.6
+            });
+            const garden = new THREE.Mesh(gardenGeometry, gardenMaterial);
+            garden.rotation.x = -Math.PI / 2;
+            garden.position.set(x, -4.9, z);
+            campusScene.add(garden);
+
+            // Add flowers in garden
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const radius = size * 0.7;
+                const flowerX = x + Math.cos(angle) * radius;
+                const flowerZ = z + Math.sin(angle) * radius;
+                
+                // Flower stem
+                const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 4);
+                const stemMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+                stem.position.set(flowerX, -4.7, flowerZ);
+                campusScene.add(stem);
+
+                // Flower head
+                const flowerGeometry = new THREE.SphereGeometry(0.2, 6, 4);
+                const flowerMaterial = new THREE.MeshPhongMaterial({ 
+                    color: new THREE.Color().setHSL(Math.random(), 0.8, 0.6)
+                });
+                const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+                flower.position.set(flowerX, -4.4, flowerZ);
+                campusScene.add(flower);
+            }
+        }
+
+        // Create gardens
+        createGarden(-15, 5, 4);
+        createGarden(15, 5, 4);
+        createGarden(0, 25, 6);
+
+        // Add cricket ground
+        function createCricketGround(x, z) {
+            // Ground
+            const groundGeometry = new THREE.CircleGeometry(12, 32);
+            const groundMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x90EE90,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.set(x, -4.9, z);
+            campusScene.add(ground);
+
+            // Boundary line
+            const boundaryGeometry = new THREE.RingGeometry(11.5, 12, 32);
+            const boundaryMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.8
+            });
+            const boundary = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
+            boundary.rotation.x = -Math.PI / 2;
+            boundary.position.set(x, -4.8, z);
+            campusScene.add(boundary);
+
+            // Cricket pitch
+            const pitchGeometry = new THREE.PlaneGeometry(2, 20);
+            const pitchMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+            const pitch = new THREE.Mesh(pitchGeometry, pitchMaterial);
+            pitch.rotation.x = -Math.PI / 2;
+            pitch.position.set(x, -4.7, z);
+            campusScene.add(pitch);
+
+            // Wickets
+            for (let i = -1; i <= 1; i += 2) {
+                const wicketGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.7, 6);
+                const wicketMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+                const wicket = new THREE.Mesh(wicketGeometry, wicketMaterial);
+                wicket.position.set(x + i * 0.5, -4.3, z);
+                campusScene.add(wicket);
+            }
+        }
+
+        // Create cricket ground
+        createCricketGround(-30, 0);
+
+        // Add campus boundary
+        function createCampusBoundary() {
+            const boundaryPoints = [
+                new THREE.Vector3(-40, -4.9, -40),
+                new THREE.Vector3(40, -4.9, -40),
+                new THREE.Vector3(40, -4.9, 40),
+                new THREE.Vector3(-40, -4.9, 40),
+                new THREE.Vector3(-40, -4.9, -40)
+            ];
+
+            const boundaryGeometry = new THREE.BufferGeometry().setFromPoints(boundaryPoints);
+            const boundaryMaterial = new THREE.LineBasicMaterial({ 
+                color: 0x8B5CF6,
+                linewidth: 3
+            });
+            const boundary = new THREE.Line(boundaryGeometry, boundaryMaterial);
+            campusScene.add(boundary);
+
+            // Add boundary posts
+            const postPositions = [
+                [-40, -40], [40, -40], [40, 40], [-40, 40]
+            ];
+
+            postPositions.forEach(pos => {
+                const postGeometry = new THREE.CylinderGeometry(0.2, 0.2, 3, 8);
+                const postMaterial = new THREE.MeshPhongMaterial({ color: 0x8B5CF6 });
+                const post = new THREE.Mesh(postGeometry, postMaterial);
+                post.position.set(pos[0], -3.4, pos[1]);
+                campusScene.add(post);
+            });
+        }
+
+        createCampusBoundary();
+
+        // Create comprehensive road network
+        function createRoadNetwork() {
+            const roadMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x2C2C2C,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const markingMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+
+            // Main horizontal road (North-South)
+            const mainRoadH = new THREE.PlaneGeometry(60, 4);
+            const roadH = new THREE.Mesh(mainRoadH, roadMaterial);
+            roadH.rotation.x = -Math.PI / 2;
+            roadH.position.set(0, -4.7, 0);
+            campusScene.add(roadH);
+
+            // Main vertical road (East-West)
+            const mainRoadV = new THREE.PlaneGeometry(4, 60);
+            const roadV = new THREE.Mesh(mainRoadV, roadMaterial);
+            roadV.rotation.x = -Math.PI / 2;
+            roadV.position.set(0, -4.7, 0);
+            campusScene.add(roadV);
+
+            // Academic block roads
+            const academicRoad1 = new THREE.PlaneGeometry(40, 3);
+            const roadA1 = new THREE.Mesh(academicRoad1, roadMaterial);
+            roadA1.rotation.x = -Math.PI / 2;
+            roadA1.position.set(0, -4.7, -25);
+            campusScene.add(roadA1);
+
+            // Library access road
+            const libraryRoad = new THREE.PlaneGeometry(3, 20);
+            const roadL = new THREE.Mesh(libraryRoad, roadMaterial);
+            roadL.rotation.x = -Math.PI / 2;
+            roadL.position.set(0, -4.7, -17);
+            campusScene.add(roadL);
+
+            // Auditorium access road
+            const auditoriumRoad = new THREE.PlaneGeometry(3, 20);
+            const roadAud = new THREE.Mesh(auditoriumRoad, roadMaterial);
+            roadAud.rotation.x = -Math.PI / 2;
+            roadAud.position.set(25, -4.7, 0);
+            campusScene.add(roadAud);
+
+            // Residential area roads
+            const residentialRoad1 = new THREE.PlaneGeometry(40, 3);
+            const roadR1 = new THREE.Mesh(residentialRoad1, roadMaterial);
+            roadR1.rotation.x = -Math.PI / 2;
+            roadR1.position.set(0, -4.7, 15);
+            campusScene.add(roadR1);
+
+            const residentialRoad2 = new THREE.PlaneGeometry(3, 20);
+            const roadR2 = new THREE.Mesh(residentialRoad2, roadMaterial);
+            roadR2.rotation.x = -Math.PI / 2;
+            roadR2.position.set(-25, -4.7, 15);
+            campusScene.add(roadR2);
+
+            const residentialRoad3 = new THREE.PlaneGeometry(3, 20);
+            const roadR3 = new THREE.Mesh(residentialRoad3, roadMaterial);
+            roadR3.rotation.x = -Math.PI / 2;
+            roadR3.position.set(25, -4.7, 15);
+            campusScene.add(roadR3);
+
+            // Cafeteria access road
+            const cafeteriaRoad = new THREE.PlaneGeometry(3, 15);
+            const roadCaf = new THREE.Mesh(cafeteriaRoad, roadMaterial);
+            roadCaf.rotation.x = -Math.PI / 2;
+            roadCaf.position.set(0, -4.7, 27);
+            campusScene.add(roadCaf);
+
+            // Sports complex access road
+            const sportsRoad = new THREE.PlaneGeometry(3, 20);
+            const roadS = new THREE.Mesh(sportsRoad, roadMaterial);
+            roadS.rotation.x = -Math.PI / 2;
+            roadS.position.set(30, -4.7, 5);
+            campusScene.add(roadS);
+
+            // Workshop access road
+            const workshopRoad = new THREE.PlaneGeometry(3, 20);
+            const roadW = new THREE.Mesh(workshopRoad, roadMaterial);
+            roadW.rotation.x = -Math.PI / 2;
+            roadW.position.set(30, -4.7, 25);
+            campusScene.add(roadW);
+
+            // Research center access road
+            const researchRoad = new THREE.PlaneGeometry(3, 20);
+            const roadRes = new THREE.Mesh(researchRoad, roadMaterial);
+            roadRes.rotation.x = -Math.PI / 2;
+            roadRes.position.set(-20, -4.7, 0);
+            campusScene.add(roadRes);
+
+            // Parking access road
+            const parkingRoad = new THREE.PlaneGeometry(3, 20);
+            const roadP = new THREE.Mesh(parkingRoad, roadMaterial);
+            roadP.rotation.x = -Math.PI / 2;
+            roadP.position.set(0, -4.7, 45);
+            campusScene.add(roadP);
+
+            // Add road markings
+            const markingPositions = [
+                { x: 0, z: 0, width: 60, height: 0.2 }, // Main horizontal
+                { x: 0, z: 0, width: 0.2, height: 60 }, // Main vertical
+                { x: 0, z: -25, width: 40, height: 0.2 }, // Academic
+                { x: 0, z: -17, width: 0.2, height: 20 }, // Library
+                { x: 25, z: 0, width: 0.2, height: 20 }, // Auditorium
+                { x: 0, z: 15, width: 40, height: 0.2 }, // Residential
+                { x: -25, z: 15, width: 0.2, height: 20 }, // Boys hostel
+                { x: 25, z: 15, width: 0.2, height: 20 }, // Girls hostel
+                { x: 0, z: 27, width: 0.2, height: 15 }, // Cafeteria
+                { x: 30, z: 5, width: 0.2, height: 20 }, // Sports
+                { x: 30, z: 25, width: 0.2, height: 20 }, // Workshop
+                { x: -20, z: 0, width: 0.2, height: 20 }, // Research
+                { x: 0, z: 45, width: 0.2, height: 20 } // Parking
+            ];
+
+            markingPositions.forEach(pos => {
+                const markingGeometry = new THREE.PlaneGeometry(pos.width, pos.height);
+                const marking = new THREE.Mesh(markingGeometry, markingMaterial);
+                marking.rotation.x = -Math.PI / 2;
+                marking.position.set(pos.x, -4.6, pos.z);
+                campusScene.add(marking);
+            });
+        }
+
+        createRoadNetwork();
+
+        // Add animated students
+        const students = [];
+        function createStudent(x, z, color = 0x8B5CF6) {
+            // Student body
+            const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1, 8);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ color: color });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.set(x, -4.2, z);
+            
+            // Student head
+            const headGeometry = new THREE.SphereGeometry(0.2, 8, 6);
+            const headMaterial = new THREE.MeshPhongMaterial({ color: 0xFFDBB5 });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.set(x, -3.7, z);
+            
+            // Student group
+            const studentGroup = new THREE.Group();
+            studentGroup.add(body);
+            studentGroup.add(head);
+            
+            // Add walking animation data
+            studentGroup.userData = {
+                startX: x,
+                startZ: z,
+                targetX: x + (Math.random() - 0.5) * 40,
+                targetZ: z + (Math.random() - 0.5) * 40,
+                speed: 0.02 + Math.random() * 0.01,
+                direction: Math.random() * Math.PI * 2
+            };
+            
+            campusScene.add(studentGroup);
+            students.push(studentGroup);
+        }
+
+        // Create multiple students positioned along roads
+        const studentPositions = [
+            // Main roads
+            [-15, 0], [-10, 0], [-5, 0], [5, 0], [10, 0], [15, 0],
+            [0, -15], [0, -10], [0, -5], [0, 5], [0, 10], [0, 15],
+            // Academic area
+            [-15, -25], [0, -25], [15, -25], [-10, -20], [10, -20],
+            // Residential area
+            [-25, 15], [25, 15], [0, 20], [-10, 20], [10, 20],
+            // Sports and workshop area
+            [30, 5], [30, 15], [30, 25],
+            // Research area
+            [-20, 0], [-15, 5], [-10, 10]
+        ];
+
+        studentPositions.forEach((pos, index) => {
+            const colors = [0x8B5CF6, 0xa78bfa, 0x6B46C1, 0x7C3AED, 0xEC4899];
+            createStudent(pos[0], pos[1], colors[index % colors.length]);
+        });
+
+        // Animate students
+        function animateStudents() {
+            students.forEach(student => {
+                const userData = student.userData;
+                
+                // Move towards target
+                const dx = userData.targetX - student.position.x;
+                const dz = userData.targetZ - student.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                
+                if (distance < 2) {
+                    // Set new target along road network
+                    const roadPositions = [
+                        // Main roads
+                        [-15, 0], [-10, 0], [-5, 0], [5, 0], [10, 0], [15, 0],
+                        [0, -15], [0, -10], [0, -5], [0, 5], [0, 10], [0, 15],
+                        // Academic area
+                        [-15, -25], [0, -25], [15, -25], [-10, -20], [10, -20],
+                        // Residential area
+                        [-25, 15], [25, 15], [0, 20], [-10, 20], [10, 20],
+                        // Sports and workshop area
+                        [30, 5], [30, 15], [30, 25],
+                        // Research area
+                        [-20, 0], [-15, 5], [-10, 10]
+                    ];
+                    
+                    const randomPos = roadPositions[Math.floor(Math.random() * roadPositions.length)];
+                    userData.targetX = randomPos[0];
+                    userData.targetZ = randomPos[1];
+                } else {
+                    // Move towards target
+                    student.position.x += (dx / distance) * userData.speed;
+                    student.position.z += (dz / distance) * userData.speed;
+                    
+                    // Rotate to face movement direction
+                    student.rotation.y = Math.atan2(dx, dz);
+                }
+                
+                // Add subtle bobbing motion
+                student.children[0].position.y = -4.2 + Math.sin(Date.now() * 0.01 + student.position.x) * 0.1;
+            });
+        }
+
+        // Create building meshes
+        const buildingMeshes = [];
+        const raycaster = new THREE.Raycaster();
+        const mouseVector = new THREE.Vector2();
+
+        // Create building meshes with enhanced interactivity
+        buildings.forEach((building, index) => {
+            const geometry = new THREE.BoxGeometry(
+                building.size.width, 
+                building.size.height, 
+                building.size.depth
+            );
+            
+            const material = new THREE.MeshPhongMaterial({ 
+                color: building.color,
+                transparent: true,
+                opacity: 0.8,
+                emissive: building.color,
+                emissiveIntensity: 0.1
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            // Position buildings properly on the ground
+            mesh.position.set(building.position.x, building.size.height / 2, building.position.z);
+            mesh.userData = {
+                buildingIndex: index,
+                originalEmissiveIntensity: 0.1,
+                building: building
+            };
+            
+            // Add building name label
+            createBuildingLabel(building, mesh);
+            
+            campusScene.add(mesh);
+            buildingMeshes.push(mesh);
+        });
+
+        // Function to create building name labels
+        function createBuildingLabel(building, mesh) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+            
+            // Draw background
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw border
+            context.strokeStyle = building.color;
+            context.lineWidth = 2;
+            context.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+            
+            // Draw text
+            context.fillStyle = '#ffffff';
+            context.font = 'bold 16px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(building.name, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const labelMaterial = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                alphaTest: 0.1
+            });
+            
+            const label = new THREE.Sprite(labelMaterial);
+            label.position.set(
+                building.position.x, 
+                building.size.height + 2, 
+                building.position.z
+            );
+            label.scale.set(8, 2, 1);
+            
+            campusScene.add(label);
+        }
+
+        // Set initial camera position
+        campusCamera.position.set(0, 20, 30);
+        campusCamera.lookAt(0, 0, 0);
+
+        // Orbit controls simulation
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraDistance = 30;
+        let cameraAngleX = 0;
+        let cameraAngleY = Math.PI / 4;
+
+        function updateCameraPosition() {
+            campusCamera.position.x = cameraDistance * Math.sin(cameraAngleX) * Math.cos(cameraAngleY);
+            campusCamera.position.y = cameraDistance * Math.sin(cameraAngleY);
+            campusCamera.position.z = cameraDistance * Math.cos(cameraAngleX) * Math.cos(cameraAngleY);
+            campusCamera.lookAt(0, 0, 0);
+        }
+
+        updateCameraPosition();
+
+        // Mouse events for orbit controls
+        document.getElementById('campus-canvas').addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
+            
+            cameraAngleX += deltaX * 0.01;
+            cameraAngleY += deltaY * 0.01;
+            
+            // Limit vertical rotation
+            cameraAngleY = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, cameraAngleY));
+            
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+            updateCameraPosition();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Zoom with scroll wheel
+        document.getElementById('campus-canvas').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            cameraDistance += e.deltaY * 0.01;
+            cameraDistance = Math.max(15, Math.min(50, cameraDistance));
+            updateCameraPosition();
+        });
+
+        // Raycasting for building interaction
+        document.getElementById('campus-canvas').addEventListener('mousemove', (e) => {
+            // Calculate mouse position in normalized device coordinates
+            const rect = document.getElementById('campus-canvas').getBoundingClientRect();
+            mouseVector.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouseVector.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            // Update the raycaster
+            raycaster.setFromCamera(mouseVector, campusCamera);
+            
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObjects(buildingMeshes);
+            
+            // Reset all building emissive intensities
+            buildingMeshes.forEach(mesh => {
+                mesh.material.emissiveIntensity = mesh.userData.originalEmissiveIntensity;
+            });
+            
+            // Highlight hovered building
+            if (intersects.length > 0) {
+                const hoveredMesh = intersects[0].object;
+                hoveredMesh.material.emissiveIntensity = 0.8;
+                document.getElementById('campus-canvas').style.cursor = 'pointer';
+            } else {
+                document.getElementById('campus-canvas').style.cursor = 'default';
+            }
+        });
+
+        // Building click handler
+        document.getElementById('campus-canvas').addEventListener('click', (e) => {
+            // Update the raycaster
+            raycaster.setFromCamera(mouseVector, campusCamera);
+            
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObjects(buildingMeshes);
+            
+            if (intersects.length > 0) {
+                const clickedMesh = intersects[0].object;
+                const buildingIndex = clickedMesh.userData.buildingIndex;
+                const building = buildings[buildingIndex];
+                
+                // Show building info
+                showBuildingInfo(building);
+                
+                // Animate camera to focus on building
+                focusOnBuilding(clickedMesh);
+            }
+        });
+
+        // Show building info card
+        function showBuildingInfo(building) {
+            const infoCard = document.getElementById('building-info');
+            const title = document.getElementById('info-title');
+            const description = document.getElementById('info-description');
+            
+            title.textContent = building.name;
+            description.textContent = building.description;
+            
+            infoCard.classList.add('active');
+        }
+
+        // Focus camera on building
+        function focusOnBuilding(mesh) {
+            const targetPosition = mesh.position.clone();
+            targetPosition.y += 5; // Look slightly above the building
+            
+            // Calculate camera position to focus on building
+            const direction = new THREE.Vector3();
+            campusCamera.getWorldDirection(direction);
+            direction.multiplyScalar(-15); // Distance from building
+            
+            const newCameraPosition = targetPosition.clone().add(direction);
+            
+            // Animate camera with GSAP
+            gsap.to(campusCamera.position, {
+                x: newCameraPosition.x,
+                y: newCameraPosition.y,
+                z: newCameraPosition.z,
+                duration: 1,
+                ease: "power2.out",
+                onUpdate: () => {
+                    campusCamera.lookAt(targetPosition);
+                }
+            });
+        }
+
+        // Virtual Tour Functionality
+        const tourModal = document.getElementById('tour-modal');
+        const closeTourButton = document.getElementById('close-tour');
+        const tourButton = document.getElementById('tour-button');
+        const tourTitle = document.getElementById('tour-title');
+
+        // 360° Tour Scene
+        const tourScene = new THREE.Scene();
+        const tourCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const tourRenderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('tour-canvas'),
+            antialias: true
+        });
+
+        tourRenderer.setSize(document.getElementById('tour-canvas').clientWidth, document.getElementById('tour-canvas').clientHeight);
+        tourRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create 360° sphere
+        const sphereGeometry = new THREE.SphereGeometry(500, 60, 40);
+        sphereGeometry.scale(-1, 1, 1); // Invert the sphere to see the inside
+
+        // Use a placeholder texture for the 360° image
+        const textureLoader = new THREE.TextureLoader();
+        const placeholderTexture = textureLoader.load('https://placehold.co/4096x2048/1a1a2a/8B5CF6?text=360%C2%B0+Campus+View');
+        
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+            map: placeholderTexture
+        });
+
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        tourScene.add(sphere);
+
+        // Set camera position inside the sphere
+        tourCamera.position.set(0, 0, 0.1);
+
+        // Mouse controls for 360° viewer
+        let isTourDragging = false;
+        let previousTourMousePosition = { x: 0, y: 0 };
+        let tourPhi = 0;
+        let tourTheta = 0;
+
+        document.getElementById('tour-canvas').addEventListener('mousedown', (e) => {
+            isTourDragging = true;
+            previousTourMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isTourDragging) return;
+            
+            const deltaX = e.clientX - previousTourMousePosition.x;
+            const deltaY = e.clientY - previousTourMousePosition.y;
+            
+            tourPhi += deltaX * 0.005;
+            tourTheta += deltaY * 0.005;
+            
+            // Limit vertical rotation
+            tourTheta = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, tourTheta));
+            
+            previousTourMousePosition = { x: e.clientX, y: e.clientY };
+            
+            // Update camera rotation
+            tourCamera.rotation.order = 'YXZ';
+            tourCamera.rotation.y = tourPhi;
+            tourCamera.rotation.x = tourTheta;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isTourDragging = false;
+        });
+
+        // Tour button click handler
+        tourButton.addEventListener('click', () => {
+            const currentBuilding = document.getElementById('info-title').textContent;
+            tourTitle.textContent = `${currentBuilding} - Virtual Tour`;
+            tourModal.classList.add('active');
+            
+            // Reset camera rotation
+            tourPhi = 0;
+            tourTheta = 0;
+            tourCamera.rotation.set(0, 0, 0);
+            
+            // Start tour animation
+            animateTour();
+        });
+
+        // Close tour modal
+        closeTourButton.addEventListener('click', () => {
+            tourModal.classList.remove('active');
+        });
+
+        // Tour animation loop
+        function animateTour() {
+            if (!tourModal.classList.contains('active')) return;
+            
+            requestAnimationFrame(animateTour);
+            tourRenderer.render(tourScene, tourCamera);
+        }
+
+        // Campus animation loop
+        function animateCampus() {
+            requestAnimationFrame(animateCampus);
+            
+            // Keep buildings static - no rotation or pulsing
+            // Buildings remain fixed and realistic
+            
+            // Animate students
+            animateStudents();
+            
+            // Update camera position
+            updateCameraPosition();
+            
+            campusRenderer.render(campusScene, campusCamera);
+        }
+
+        // Handle window resize for campus and tour
+        window.addEventListener('resize', () => {
+            // Campus camera and renderer
+            campusCamera.aspect = window.innerWidth / window.innerHeight;
+            campusCamera.updateProjectionMatrix();
+            campusRenderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Tour camera and renderer
+            const tourCanvas = document.getElementById('tour-canvas');
+            tourCamera.aspect = tourCanvas.clientWidth / tourCanvas.clientHeight;
+            tourCamera.updateProjectionMatrix();
+            tourRenderer.setSize(tourCanvas.clientWidth, tourCanvas.clientHeight);
+        });
+
+        // Start campus animation
+        animateCampus();
+    </script>
+</body>
+</html>

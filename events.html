@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles - Continuous Flow */
+        section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Upcoming Events Section */
+        .upcoming-events {
+            padding: 60px 0 80px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .events-carousel {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            cursor: grab;
+            padding: 20px 0;
+        }
+
+        .events-carousel:active {
+            cursor: grabbing;
+        }
+
+        .events-track {
+            display: flex;
+            gap: 30px;
+            padding: 0 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .event-card {
+            min-width: 500px;
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .event-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .event-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.5s ease;
+        }
+
+        .event-card:hover .event-bg {
+            transform: scale(1.1);
+        }
+
+        .event-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(10, 10, 26, 0.2), rgba(10, 10, 26, 0.8));
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px;
+        }
+
+        .event-title {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .event-date {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: var(--text-secondary);
+        }
+
+        .countdown {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .countdown-unit {
+            text-align: center;
+        }
+
+        .countdown-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1;
+            margin-bottom: 5px;
+            min-width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 26, 0.7);
+            border-radius: 10px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .countdown-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .register-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            align-self: flex-start;
+        }
+
+        .register-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .register-btn:hover {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
+        }
+
+        .register-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Past Moments Section */
+        .past-moments {
+            padding: 80px 0 100px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.2);
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover .gallery-image {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-title {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .gallery-year {
+            font-size: 1rem;
+            color: var(--accent);
+        }
+
+        /* Gallery Modal */
+        .gallery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            z-index: 10;
+        }
+
+        .close-modal:hover {
+            color: var(--accent);
+        }
+
+        .modal-image-container {
+            width: 100%;
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .modal-year {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        .modal-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-light);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .nav-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .event-card {
+                min-width: 350px;
+                height: 400px;
+            }
+            
+            .event-title {
+                font-size: 1.8rem;
+            }
+            
+            .countdown-value {
+                font-size: 2rem;
+                min-width: 60px;
+                height: 60px;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .modal-image-container {
+                height: 300px;
+            }
+            
+            .modal-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html#page2" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>The Vibe of Innovation.</h1>
+            <p>From groundbreaking hackathons to vibrant cultural fests, this is where the BMIET community comes alive.</p>
+        </div>
+    </section>
+
+    <!-- Upcoming Events Section -->
+    <section class="upcoming-events">
+        <div class="container">
+            <h2 class="section-title">Mark Your Calendar</h2>
+            <div class="events-carousel">
+                <div class="events-track" id="events-track">
+                    <!-- Event Card 1 -->
+                    <div class="event-card">
+                        <div class="event-bg" style="background-image: url('https://placehold.co/800x600/1a1a2a/8B5CF6?text=Ignite+2025')"></div>
+                        <div class="event-overlay">
+                            <h3 class="event-title">Ignite 2025 - Annual Tech & Cultural Fest</h3>
+                            <p class="event-date">December 15, 2025</p>
+                            <div class="countdown" id="countdown-ignite">
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="days-ignite">00</span>
+                                    <span class="countdown-label">Days</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="hours-ignite">00</span>
+                                    <span class="countdown-label">Hours</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="minutes-ignite">00</span>
+                                    <span class="countdown-label">Minutes</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="seconds-ignite">00</span>
+                                    <span class="countdown-label">Seconds</span>
+                                </div>
+                            </div>
+                            <button class="register-btn">Register Now</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 2 -->
+                    <div class="event-card">
+                        <div class="event-bg" style="background-image: url('https://placehold.co/800x600/1a1a2a/8B5CF6?text=CodeGenesis+Hackathon')"></div>
+                        <div class="event-overlay">
+                            <h3 class="event-title">CodeGenesis National Hackathon</h3>
+                            <p class="event-date">November 10, 2025</p>
+                            <div class="countdown" id="countdown-hackathon">
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="days-hackathon">00</span>
+                                    <span class="countdown-label">Days</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="hours-hackathon">00</span>
+                                    <span class="countdown-label">Hours</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="minutes-hackathon">00</span>
+                                    <span class="countdown-label">Minutes</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="seconds-hackathon">00</span>
+                                    <span class="countdown-label">Seconds</span>
+                                </div>
+                            </div>
+                            <button class="register-btn">Register Now</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 3 -->
+                    <div class="event-card">
+                        <div class="event-bg" style="background-image: url('https://placehold.co/800x600/1a1a2a/8B5CF6?text=Robo+Wars+2025')"></div>
+                        <div class="event-overlay">
+                            <h3 class="event-title">Robo Wars 2025 - Robotics Competition</h3>
+                            <p class="event-date">January 20, 2026</p>
+                            <div class="countdown" id="countdown-robotics">
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="days-robotics">00</span>
+                                    <span class="countdown-label">Days</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="hours-robotics">00</span>
+                                    <span class="countdown-label">Hours</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="minutes-robotics">00</span>
+                                    <span class="countdown-label">Minutes</span>
+                                </div>
+                                <div class="countdown-unit">
+                                    <span class="countdown-value" id="seconds-robotics">00</span>
+                                    <span class="countdown-label">Seconds</span>
+                                </div>
+                            </div>
+                            <button class="register-btn">Register Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Past Moments Section -->
+    <section class="past-moments">
+        <div class="container">
+            <h2 class="section-title">Moments We Cherished</h2>
+            <div class="gallery-grid">
+                <!-- Gallery Item 1 -->
+                <div class="gallery-item" data-gallery="sports">
+                    <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Sports+Meet+2025" alt="Annual Sports Meet 2025" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Annual Sports Meet 2025</h3>
+                        <span class="gallery-year">2025</span>
+                    </div>
+                </div>
+
+                <!-- Gallery Item 2 -->
+                <div class="gallery-item" data-gallery="esports">
+                    <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=LAN+Esports+2025" alt="LAN Esports Tournament 2025" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">LAN Esports Tournament 2025</h3>
+                        <span class="gallery-year">2025</span>
+                    </div>
+                </div>
+
+                <!-- Gallery Item 3 -->
+                <div class="gallery-item" data-gallery="exhibition">
+                    <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Project+Exhibition+2024" alt="Project Exhibition 2024" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Project Exhibition 2024</h3>
+                        <span class="gallery-year">2024</span>
+                    </div>
+                </div>
+
+                <!-- Gallery Item 4 -->
+                <div class="gallery-item" data-gallery="cultural">
+                    <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Cultural+Night+2024" alt="Cultural Night 2024" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Cultural Night 2024</h3>
+                        <span class="gallery-year">2024</span>
+                    </div>
+                </div>
+
+                <!-- Gallery Item 5 -->
+                <div class="gallery-item" data-gallery="workshop">
+                    <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=AI+Workshop+2024" alt="AI Workshop 2024" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">AI Workshop 2024</h3>
+                        <span class="gallery-year">2024</span>
+                    </div>
+                </div>
+
+                <!-- Gallery Item 6 -->
+                <div class="gallery-item" data-gallery="graduation">
+                    <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Graduation+2024" alt="Graduation Ceremony 2024" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Graduation Ceremony 2024</h3>
+                        <span class="gallery-year">2024</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Modal -->
+    <div class="gallery-modal" id="gallery-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">
+                <span class="material-icons">close</span>
+            </button>
+            <div class="modal-image-container">
+                <img id="modal-image" src="" alt="Gallery Image" class="modal-image">
+            </div>
+            <div class="modal-info">
+                <h2 class="modal-title" id="modal-title">Event Title</h2>
+                <span class="modal-year" id="modal-year">Year</span>
+            </div>
+            <div class="modal-nav">
+                <button class="nav-btn" id="prev-btn">
+                    <span class="material-icons">chevron_left</span>
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate sections on scroll with continuous flow
+        gsap.utils.toArray('section').forEach((section, index) => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 85%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // Events Carousel Dragging
+        const eventsCarousel = document.querySelector('.events-carousel');
+        const eventsTrack = document.getElementById('events-track');
+        
+        let isDragging = false;
+        let startX;
+        let scrollLeft;
+
+        eventsCarousel.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.pageX - eventsCarousel.offsetLeft;
+            scrollLeft = eventsCarousel.scrollLeft;
+            eventsCarousel.style.cursor = 'grabbing';
+        });
+
+        eventsCarousel.addEventListener('mouseleave', () => {
+            isDragging = false;
+            eventsCarousel.style.cursor = 'grab';
+        });
+
+        eventsCarousel.addEventListener('mouseup', () => {
+            isDragging = false;
+            eventsCarousel.style.cursor = 'grab';
+        });
+
+        eventsCarousel.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - eventsCarousel.offsetLeft;
+            const walk = (x - startX) * 2;
+            eventsCarousel.scrollLeft = scrollLeft - walk;
+        });
+
+        // Countdown Timer Implementation
+        // Event dates (set to future dates)
+        const eventDates = {
+            ignite: new Date('December 15, 2025 09:00:00').getTime(),
+            hackathon: new Date('November 10, 2025 10:00:00').getTime(),
+            robotics: new Date('January 20, 2026 09:00:00').getTime()
+        };
+
+        // Function to update countdown timers
+        function updateCountdowns() {
+            const now = new Date().getTime();
+            
+            // Update each event countdown
+            Object.keys(eventDates).forEach(event => {
+                const eventTime = eventDates[event];
+                const timeLeft = eventTime - now;
+                
+                if (timeLeft > 0) {
+                    // Calculate days, hours, minutes, seconds
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    // Update DOM elements with animation
+                    updateCountdownElement(`days-${event}`, days);
+                    updateCountdownElement(`hours-${event}`, hours);
+                    updateCountdownElement(`minutes-${event}`, minutes);
+                    updateCountdownElement(`seconds-${event}`, seconds);
+                } else {
+                    // Event has passed
+                    document.getElementById(`countdown-${event}`).innerHTML = '<div class="countdown-unit"><span class="countdown-value">Event</span><span class="countdown-label">Started</span></div>';
+                }
+            });
+        }
+
+        // Function to update countdown elements with animation
+        function updateCountdownElement(elementId, value) {
+            const element = document.getElementById(elementId);
+            const currentValue = parseInt(element.textContent);
+            
+            if (currentValue !== value) {
+                // Animate the value change
+                gsap.to(element, {
+                    scale: 1.2,
+                    duration: 0.2,
+                    onComplete: () => {
+                        element.textContent = value.toString().padStart(2, '0');
+                        gsap.to(element, {
+                            scale: 1,
+                            duration: 0.2
+                        });
+                    }
+                });
+            }
+        }
+
+        // Initialize countdowns and update every second
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+
+        // Gallery Modal Functionality
+        const galleryModal = document.getElementById('gallery-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalTitle = document.getElementById('modal-title');
+        const modalYear = document.getElementById('modal-year');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Gallery data
+        const galleryData = {
+            sports: {
+                title: "Annual Sports Meet 2025",
+                year: "2025",
+                images: [
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Sports+Meet+1",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Sports+Meet+2",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Sports+Meet+3"
+                ]
+            },
+            esports: {
+                title: "LAN Esports Tournament 2025",
+                year: "2025",
+                images: [
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Esports+1",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Esports+2",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Esports+3"
+                ]
+            },
+            exhibition: {
+                title: "Project Exhibition 2024",
+                year: "2024",
+                images: [
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Exhibition+1",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Exhibition+2",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Exhibition+3"
+                ]
+            },
+            cultural: {
+                title: "Cultural Night 2024",
+                year: "2024",
+                images: [
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Cultural+1",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Cultural+2",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Cultural+3"
+                ]
+            },
+            workshop: {
+                title: "AI Workshop 2024",
+                year: "2024",
+                images: [
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Workshop+1",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Workshop+2",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Workshop+3"
+                ]
+            },
+            graduation: {
+                title: "Graduation Ceremony 2024",
+                year: "2024",
+                images: [
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Graduation+1",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Graduation+2",
+                    "https://placehold.co/800x600/1a1a2a/8B5CF6?text=Graduation+3"
+                ]
+            }
+        };
+
+        let currentGallery = '';
+        let currentImageIndex = 0;
+
+        // Open gallery modal when gallery item is clicked
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const galleryId = item.getAttribute('data-gallery');
+                const gallery = galleryData[galleryId];
+                
+                if (gallery) {
+                    currentGallery = galleryId;
+                    currentImageIndex = 0;
+                    
+                    // Update modal content
+                    modalTitle.textContent = gallery.title;
+                    modalYear.textContent = gallery.year;
+                    modalImage.src = gallery.images[0];
+                    
+                    // Show modal with animation
+                    galleryModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Update navigation buttons
+                    updateNavButtons();
+                }
+            });
+        });
+
+        // Navigation functions
+        function nextImage() {
+            if (currentGallery && currentImageIndex < galleryData[currentGallery].images.length - 1) {
+                currentImageIndex++;
+                updateModalImage();
+                updateNavButtons();
+            }
+        }
+
+        function prevImage() {
+            if (currentGallery && currentImageIndex > 0) {
+                currentImageIndex--;
+                updateModalImage();
+                updateNavButtons();
+            }
+        }
+
+        function updateModalImage() {
+            // Animate image transition
+            gsap.to(modalImage, {
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    modalImage.src = galleryData[currentGallery].images[currentImageIndex];
+                    gsap.to(modalImage, {
+                        opacity: 1,
+                        duration: 0.3
+                    });
+                }
+            });
+        }
+
+        function updateNavButtons() {
+            // Update button states based on current image index
+            prevBtn.disabled = currentImageIndex === 0;
+            nextBtn.disabled = currentImageIndex === galleryData[currentGallery].images.length - 1;
+        }
+
+        // Event listeners for navigation
+        nextBtn.addEventListener('click', nextImage);
+        prevBtn.addEventListener('click', prevImage);
+
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            galleryModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        // Close modal when clicking outside content
+        galleryModal.addEventListener('click', (e) => {
+            if (e.target === galleryModal) {
+                galleryModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (galleryModal.classList.contains('active')) {
+                if (e.key === 'ArrowRight') {
+                    nextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage();
+                } else if (e.key === 'Escape') {
+                    galleryModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media & Multimedia - BMIET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-darker: #000;
+            --accent: #8B5CF6;
+            --accent-light: #a78bfa;
+            --text-primary: #FFFFFF;
+            --text-secondary: #cccccc;
+            --text-muted: #888;
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --card-border: rgba(139, 92, 246, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--accent);
+        }
+
+        .nav-icon-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon-link:hover {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-icon-link .nav-icon {
+            cursor: pointer;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Section Styles - Continuous Flow */
+        section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6, #a78bfa, #ffffff);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        /* Live Feed Section */
+        .live-feed-section {
+            padding: 60px 0 100px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, #a78bfa, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feed-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .feed-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feed-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .twitter-icon {
+            background: rgba(29, 161, 242, 0.2);
+            color: #1DA1F2;
+        }
+
+        .instagram-icon {
+            background: linear-gradient(45deg, rgba(225, 48, 108, 0.2), rgba(245, 96, 64, 0.2));
+            color: #E1306C;
+        }
+
+        .youtube-icon {
+            background: rgba(255, 0, 0, 0.2);
+            color: #FF0000;
+        }
+
+        .linkedin-icon {
+            background: rgba(0, 119, 181, 0.2);
+            color: #0077B5;
+        }
+
+        .platform-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .post-time {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .card-content {
+            margin-bottom: 20px;
+        }
+
+        .post-text {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .post-video {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            border-radius: 10px;
+            display: block;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            background: var(--accent);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .interaction-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .interaction-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .interaction-btn:hover {
+            color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .interaction-btn:hover .material-icons {
+            transform: scale(1.1);
+        }
+
+        .interaction-btn .material-icons {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        /* Follow Us Section */
+        .follow-section {
+            padding: 60px 0 100px;
+            text-align: center;
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .social-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .social-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .social-card:hover::before {
+            left: 100%;
+        }
+
+        .social-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .social-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-card:hover .social-icon {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .social-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .social-handle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .social-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .feed-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">BMIET<span>.</span></a>
+        <div class="nav-icons">
+            <a href="landingpage.html" class="nav-icon-link" title="Back to Home">
+                <span class="material-icons nav-icon">arrow_back</span>
+            </a>
+            <span class="material-icons nav-icon">search</span>
+            <span class="material-icons nav-icon">menu</span>
+        </div>
+    </header>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Join the Digital Conversation.</h1>
+            <p>Connect with us. Follow the stories, share the moments, and be a part of the BMIET online community.</p>
+        </div>
+    </section>
+
+    <!-- Live Feed Section -->
+    <section class="live-feed-section">
+        <div class="container">
+            <h2 class="section-title">The Digital Pulse</h2>
+            
+            <div class="feed-container" id="feed-container">
+                <!-- Twitter Card -->
+                <div class="feed-card">
+                    <div class="card-header">
+                        <div class="platform-icon twitter-icon">
+                            <span class="material-icons">flutter_dash</span>
+                        </div>
+                        <div class="platform-name">X (Twitter)</div>
+                        <div class="post-time">2 hours ago</div>
+                    </div>
+                    <div class="card-content">
+                        <p class="post-text">History made! Huge congrats to our student team for winning the 'Code for India' National Hackathon! Your innovation is an inspiration. #BMIET #Innovation #Winners</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="interaction-buttons">
+                            <button class="interaction-btn">
+                                <span class="material-icons">favorite</span>
+                                <span>248</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">chat_bubble</span>
+                                <span>42</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">share</span>
+                                <span>Share</span>
+                            </button>
+                        </div>
+                    </div>
+                    <a href="#" class="card-link"></a>
+                </div>
+                
+                <!-- Instagram Card -->
+                <div class="feed-card">
+                    <div class="card-header">
+                        <div class="platform-icon instagram-icon">
+                            <span class="material-icons">photo_camera</span>
+                        </div>
+                        <div class="platform-name">Instagram</div>
+                        <div class="post-time">1 day ago</div>
+                    </div>
+                    <div class="card-content">
+                        <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Ignite+2025" alt="Ignite 2025 Fest" class="post-image">
+                        <p class="post-text">Reliving the energy of Ignite 2025! What a night of talent, tech, and unforgettable moments. Drop your favorite memory in the comments! 👇</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="interaction-buttons">
+                            <button class="interaction-btn">
+                                <span class="material-icons">favorite</span>
+                                <span>1.2K</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">chat_bubble</span>
+                                <span>156</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">share</span>
+                                <span>Share</span>
+                            </button>
+                        </div>
+                    </div>
+                    <a href="#" class="card-link"></a>
+                </div>
+                
+                <!-- YouTube Card -->
+                <div class="feed-card">
+                    <div class="card-header">
+                        <div class="platform-icon youtube-icon">
+                            <span class="material-icons">play_arrow</span>
+                        </div>
+                        <div class="platform-name">YouTube</div>
+                        <div class="post-time">3 days ago</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="post-video">
+                            <img src="https://placehold.co/600x400/1a1a2a/8B5CF6?text=Campus+Drone+Tour" alt="Campus Drone Tour" class="video-thumbnail">
+                            <div class="play-button">
+                                <span class="material-icons">play_arrow</span>
+                            </div>
+                        </div>
+                        <p class="post-text">New Video: A Drone's-Eye View of the BMIET Campus. Experience our world-class infrastructure like never before. Link in bio!</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="interaction-buttons">
+                            <button class="interaction-btn">
+                                <span class="material-icons">thumb_up</span>
+                                <span>845</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">chat_bubble</span>
+                                <span>73</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">share</span>
+                                <span>Share</span>
+                            </button>
+                        </div>
+                    </div>
+                    <a href="#" class="card-link"></a>
+                </div>
+                
+                <!-- LinkedIn Card -->
+                <div class="feed-card">
+                    <div class="card-header">
+                        <div class="platform-icon linkedin-icon">
+                            <span class="material-icons">business</span>
+                        </div>
+                        <div class="platform-name">LinkedIn</div>
+                        <div class="post-time">1 week ago</div>
+                    </div>
+                    <div class="card-content">
+                        <p class="post-text">Proud to announce our new partnership with TechCorp Industries to establish a cutting-edge AI Research Center on campus. This collaboration will provide our students with unparalleled opportunities in artificial intelligence and machine learning research. #AI #Innovation #Partnership</p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="interaction-buttons">
+                            <button class="interaction-btn">
+                                <span class="material-icons">thumb_up</span>
+                                <span>512</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">chat_bubble</span>
+                                <span>38</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <span class="material-icons">share</span>
+                                <span>Share</span>
+                            </button>
+                        </div>
+                    </div>
+                    <a href="#" class="card-link"></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Follow Us Section -->
+    <section class="follow-section">
+        <div class="container">
+            <h2 class="section-title">Follow Our Journey</h2>
+            
+            <div class="social-grid">
+                <div class="social-card" data-platform="linkedin">
+                    <div class="social-icon linkedin-icon">
+                        <span class="material-icons">business</span>
+                    </div>
+                    <div class="social-name">LinkedIn</div>
+                    <div class="social-handle">@BMIETOfficial</div>
+                </div>
+                
+                <div class="social-card" data-platform="twitter">
+                    <div class="social-icon twitter-icon">
+                        <span class="material-icons">flutter_dash</span>
+                    </div>
+                    <div class="social-name">X (Twitter)</div>
+                    <div class="social-handle">@BMIET_Updates</div>
+                </div>
+                
+                <div class="social-card" data-platform="instagram">
+                    <div class="social-icon instagram-icon">
+                        <span class="material-icons">photo_camera</span>
+                    </div>
+                    <div class="social-name">Instagram</div>
+                    <div class="social-handle">@BMIET_Campus</div>
+                </div>
+                
+                <div class="social-card" data-platform="youtube">
+                    <div class="social-icon youtube-icon">
+                        <span class="material-icons">play_arrow</span>
+                    </div>
+                    <div class="social-name">YouTube</div>
+                    <div class="social-handle">BMIET Official</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BMIET<span>.</span></div>
+                <p class="footer-text">B. M. Institute of Engineering and Technology - Shaping the engineers of tomorrow.</p>
+                <p class="copyright">© 2025 BMIET. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Three.js Metaball Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create metaballs
+        const metaballs = [];
+        const metaballCount = 15;
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+
+        for (let i = 0; i < metaballCount; i++) {
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(`hsl(${Math.random() * 30 + 250}, 70%, 60%)`),
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+
+            const metaball = new THREE.Mesh(geometry, material);
+            
+            // Random position
+            metaball.position.x = (Math.random() - 0.5) * 20;
+            metaball.position.y = (Math.random() - 0.5) * 20;
+            metaball.position.z = (Math.random() - 0.5) * 10;
+            
+            // Random size
+            const size = Math.random() * 0.5 + 0.3;
+            metaball.scale.set(size, size, size);
+            
+            // Store velocity for animation
+            metaball.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01,
+                    (Math.random() - 0.5) * 0.01
+                )
+            };
+            
+            scene.add(metaball);
+            metaballs.push(metaball);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xa78bfa, 0.5, 100);
+        pointLight.position.set(0, 0, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Mouse interaction
+        const mouse = new THREE.Vector2();
+        const target = new THREE.Vector2();
+        const windowHalf = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX - windowHalf.x) / windowHalf.x;
+            mouse.y = (event.clientY - windowHalf.y) / windowHalf.y;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update metaball positions
+            metaballs.forEach(metaball => {
+                metaball.position.x += metaball.userData.velocity.x;
+                metaball.position.y += metaball.userData.velocity.y;
+                metaball.position.z += metaball.userData.velocity.z;
+                
+                // Bounce off boundaries
+                if (Math.abs(metaball.position.x) > 10) metaball.userData.velocity.x *= -1;
+                if (Math.abs(metaball.position.y) > 10) metaball.userData.velocity.y *= -1;
+                if (Math.abs(metaball.position.z) > 5) metaball.userData.velocity.z *= -1;
+                
+                // React to mouse
+                const distanceX = metaball.position.x - mouse.x * 5;
+                const distanceY = metaball.position.y - mouse.y * 5;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < 3) {
+                    metaball.userData.velocity.x += (metaball.position.x - mouse.x * 5) * 0.0001;
+                    metaball.userData.velocity.y += (metaball.position.y - mouse.y * 5) * 0.0001;
+                }
+            });
+            
+            // Smooth camera follow for mouse
+            target.x = mouse.x * 0.5;
+            target.y = mouse.y * 0.5;
+            
+            camera.position.x += (target.x - camera.position.x) * 0.05;
+            camera.position.y += (target.y - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate sections on scroll with continuous flow
+        gsap.utils.toArray('section').forEach((section, index) => {
+            gsap.fromTo(section, 
+                { opacity: 0, y: 50 },
+                { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 1, 
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 85%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // Staggered animation for feed cards
+        const feedCards = gsap.utils.toArray('.feed-card');
+        
+        gsap.fromTo(feedCards, 
+            { 
+                opacity: 0, 
+                y: 50 
+            },
+            { 
+                opacity: 1, 
+                y: 0, 
+                duration: 0.8,
+                stagger: 0.2,
+                scrollTrigger: {
+                    trigger: '.live-feed-section',
+                    start: 'top 80%',
+                    end: 'bottom 20%',
+                    toggleActions: 'play none none none'
+                }
+            }
+        );
+
+        // Hover effects for social cards
+        const socialCards = document.querySelectorAll('.social-card');
+        
+        socialCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                gsap.to(card, {
+                    scale: 1.05,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    scale: 1,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+        });
+
+        // Interaction button hover effects
+        const interactionButtons = document.querySelectorAll('.interaction-btn');
+        
+        interactionButtons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                gsap.to(button, {
+                    scale: 1.05,
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                gsap.to(button, {
+                    scale: 1,
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+            });
+        });
+
+        // Play button animation for video cards
+        const playButtons = document.querySelectorAll('.play-button');
+        
+        playButtons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                gsap.to(button, {
+                    scale: 1.1,
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                gsap.to(button, {
+                    scale: 1,
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+            });
+        });
+
+        // Card hover animations
+        const cards = document.querySelectorAll('.feed-card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                gsap.to(card, {
+                    y: -10,
+                    boxShadow: "0 15px 30px rgba(139, 92, 246, 0.2)",
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    y: 0,
+                    boxShadow: "none",
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+        });
+    </script>
+</body>
+</html>
